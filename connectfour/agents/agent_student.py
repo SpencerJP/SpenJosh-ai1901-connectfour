@@ -10,15 +10,15 @@ class StudentAgent(RandomAgent):
     PLAYER_TWO_ID = 2
     def __init__(self, name):
         super().__init__(name)
-        self.MaxDepth = 8
+        self.MaxDepth = 2
         self.nodes_counted = 0
         self.id = -1
 
     def get_current_player(self, num_moves):
         if(num_moves % 2 == 0 or num_moves == 0):
-            return self.PLAYER_TWO_ID
-        else:
             return self.PLAYER_ONE_ID
+        else:
+            return self.PLAYER_TWO_ID
 
     def debug_print_board(self, board):
         string = ""
@@ -148,17 +148,17 @@ class StudentAgent(RandomAgent):
 
         #print("depth: %d, alpha: %d, beta: %d" % (depth, alpha, beta))
         #self.debug_print_board(board)
+
+        #print("before - alpha: %d, beta: %d" %( alpha, beta))
         self.nodes_counted = self.nodes_counted + 1
 
-        if depth == self.MaxDepth:
-            return self.evaluateBoardState(board)
 
         winner_num = board.winner()
         if(winner_num != 0):
             if (self.id == winner_num):
-                return (self.DIMENSIONS - num_moves) / 2
+                return int((self.DIMENSIONS - num_moves) / 2)
             else:
-                return -(self.DIMENSIONS - num_moves) / 2
+                return int(-(self.DIMENSIONS - num_moves) / 2)
         #detect a draw
         if(num_moves >= self.DIMENSIONS - 2):
             return 0
@@ -168,13 +168,16 @@ class StudentAgent(RandomAgent):
 
         # no valid moves that won't cause a loss (TODO)
         if len(list(valid_moves)) == 0:
-           return int(-(self.DIMENSIONS - num_moves) / 2)
+            print("test-1")
+            return int(-(self.DIMENSIONS - num_moves) / 2)
 
         # set alpha to the minimum possible value
-        min = -(self.DIMENSIONS - 2 - num_moves) / 2
+        min = int(-(self.DIMENSIONS - 2 - num_moves) / 2)
         if(alpha < min):
             alpha = min
             if(alpha >= beta):
+                if(alpha == 15):
+                    print("fuck1")
                 return alpha #prune children.
 
         # set beta to the maximum possible value
@@ -182,14 +185,22 @@ class StudentAgent(RandomAgent):
         if(beta > max):
             beta = max
             if(alpha >= beta):
+                if(beta == 15):
+                    print("fuck2")
                 return beta #prune children.
 
         #could include transposition or a lookup table for early game stuff here.
+
+        if depth == self.MaxDepth:
+                    return self.evaluateBoardState(board)
+
         valid_moves = board.valid_moves()
         for move in valid_moves:
             next_node = board.next_state(self.get_current_player(num_moves), move[1])
+            #print("Recursively calling negamax, depth: %d" % depth)
             score = -self.negamax(next_node, -beta, -alpha, num_moves+1, depth + 1) # recursively go through the children of this node.
-            #print("score: %d, alpha: %d, beta: %d" %(score, alpha, beta))
+            #print("Returned %d" % score)
+            #print("after - score: %d, alpha: %d, beta: %d" %(score, alpha, beta))
             if(score >= beta):
               #save into trans table
               return score
@@ -197,6 +208,8 @@ class StudentAgent(RandomAgent):
             if(score > alpha):
                 alpha = score
 
+        if(alpha == 15):
+            print("fuck3")
         return alpha
 
 
