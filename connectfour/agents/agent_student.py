@@ -10,12 +10,12 @@ class StudentAgent(RandomAgent):
     PLAYER_TWO_ID = 2
     def __init__(self, name):
         super().__init__(name)
-        self.MaxDepth = 43
+        self.MaxDepth = 8
         self.nodes_counted = 0
         self.id = -1
 
     def get_current_player(self, num_moves):
-        if(num_moves % 2 == 1):
+        if(num_moves % 2 == 0 or num_moves == 0):
             return self.PLAYER_TWO_ID
         else:
             return self.PLAYER_ONE_ID
@@ -51,6 +51,7 @@ class StudentAgent(RandomAgent):
 
         if self.id == -1:
             self.id = self.get_current_player(current_move_number)
+            print("Current Player is %d" % self.id)
 
         #valid_moves = board.valid_moves()
         #print("Valid moves: %d, movesSoFar: %d" % (len(list(valid_moves)), current_move_number))
@@ -73,6 +74,7 @@ class StudentAgent(RandomAgent):
             while(minimum < maximum):
 
                 medium = int(minimum + (maximum - minimum) / 2)
+                print("min: %d, max: %d, med: %d" % (minimum, maximum, medium))
                 if(medium <= 0 and (minimum / 2) < medium):
                      medium = minimum / 2
                 elif(medium >= 0 and (maximum / 2) > medium):
@@ -85,13 +87,15 @@ class StudentAgent(RandomAgent):
                     minimum = result
 
             print("column number: %d, calculated value: %d" % (column_number+1, minimum))
-            self.debug_print_board(next_node)
+
             column_number = column_number + 1
             vals.append( minimum )
 
         print("Counted %d nodes to make this move." % self.nodes_counted)
 
         bestMove = moves[vals.index( max(vals) )]
+        next_node = board.next_state( self.id, bestMove[1] )
+        self.debug_print_board(next_node)
         return bestMove
 
 
@@ -143,16 +147,18 @@ class StudentAgent(RandomAgent):
         ## TODO:  make sure the current player will not win this move
 
         #print("depth: %d, alpha: %d, beta: %d" % (depth, alpha, beta))
-        #self.debug_print_board(node)
+        #self.debug_print_board(board)
         self.nodes_counted = self.nodes_counted + 1
 
         if depth == self.MaxDepth:
             return self.evaluateBoardState(board)
+
         winner_num = board.winner()
-        if (winner_num == self.id):
-            return int((self.DIMENSIONS - num_moves) / 2)
-        elif (winner_num != 0):
-            return int(-(self.DIMENSIONS - num_moves) / 2)
+        if(winner_num != 0):
+            if (self.id == winner_num):
+                return (self.DIMENSIONS - num_moves) / 2
+            else:
+                return -(self.DIMENSIONS - num_moves) / 2
         #detect a draw
         if(num_moves >= self.DIMENSIONS - 2):
             return 0
@@ -181,8 +187,9 @@ class StudentAgent(RandomAgent):
         #could include transposition or a lookup table for early game stuff here.
         valid_moves = board.valid_moves()
         for move in valid_moves:
-            next_node = board.next_state(self.id, move[1])
+            next_node = board.next_state(self.get_current_player(num_moves), move[1])
             score = -self.negamax(next_node, -beta, -alpha, num_moves+1, depth + 1) # recursively go through the children of this node.
+            #print("score: %d, alpha: %d, beta: %d" %(score, alpha, beta))
             if(score >= beta):
               #save into trans table
               return score
