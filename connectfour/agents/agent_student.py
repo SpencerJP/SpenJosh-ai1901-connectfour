@@ -6,8 +6,6 @@ import copy
 
 class StudentAgent(RandomAgent):
     DIMENSIONS = 42
-    DEBUG = False
-    DEBUG2 = False
     PLAYER_ONE_ID = 1
     PLAYER_TWO_ID = 2
     def __init__(self, name):
@@ -67,12 +65,11 @@ class StudentAgent(RandomAgent):
 
         column_number = 0
         for move in valid_moves:
-            minimum = -(self.DIMENSIONS - current_move_number) / 2
+            minimum = int(-(self.DIMENSIONS - current_move_number) / 2)
 
-            maximum = (self.DIMENSIONS + 1 - current_move_number) / 2
+            maximum = int((self.DIMENSIONS + 1 - current_move_number) / 2)
             next_node = board.next_state( self.id, move[1] )
             moves.append( move )
-            self.debug_print_board(next_node)
             while(minimum < maximum):
 
                 medium = int(minimum + (maximum - minimum) / 2)
@@ -88,6 +85,7 @@ class StudentAgent(RandomAgent):
                     minimum = result
 
             print("column number: %d, calculated value: %d" % (column_number+1, minimum))
+            self.debug_print_board(next_node)
             column_number = column_number + 1
             vals.append( minimum )
 
@@ -144,21 +142,19 @@ class StudentAgent(RandomAgent):
 
         ## TODO:  make sure the current player will not win this move
 
+        #print("depth: %d, alpha: %d, beta: %d" % (depth, alpha, beta))
         #self.debug_print_board(node)
-
         self.nodes_counted = self.nodes_counted + 1
 
         if depth == self.MaxDepth:
             return self.evaluateBoardState(board)
         winner_num = board.winner()
-        if (winner_num == 1 or winner_num == 2):
-            if self.DEBUG2:
-                self.debug_print_board(board)
-            return -(self.DIMENSIONS - num_moves) / 2
+        if (winner_num == self.id):
+            return int((self.DIMENSIONS - num_moves) / 2)
+        elif (winner_num != 0):
+            return int(-(self.DIMENSIONS - num_moves) / 2)
         #detect a draw
         if(num_moves >= self.DIMENSIONS - 2):
-            if self.DEBUG2:
-                self.debug_print_board(board)
             return 0
 
         #get a list of moves that won't cause you to lose
@@ -166,45 +162,34 @@ class StudentAgent(RandomAgent):
 
         # no valid moves that won't cause a loss (TODO)
         if len(list(valid_moves)) == 0:
-           return -(self.DIMENSIONS - num_moves) / 2
+           return int(-(self.DIMENSIONS - num_moves) / 2)
 
         # set alpha to the minimum possible value
         min = -(self.DIMENSIONS - 2 - num_moves) / 2
         if(alpha < min):
             alpha = min
             if(alpha >= beta):
-                if self.DEBUG2:
-                    print("prune a")
                 return alpha #prune children.
 
         # set beta to the maximum possible value
-        max = (self.DIMENSIONS - 1 - num_moves) / 2
+        max = int((self.DIMENSIONS - 1 - num_moves) / 2)
         if(beta > max):
             beta = max
             if(alpha >= beta):
-                if self.DEBUG2:
-                    print("prune b")
                 return beta #prune children.
 
         #could include transposition or a lookup table for early game stuff here.
         valid_moves = board.valid_moves()
         for move in valid_moves:
-            if(self.DEBUG2):
-                print("move")
             next_node = board.next_state(self.id, move[1])
             score = -self.negamax(next_node, -beta, -alpha, num_moves+1, depth + 1) # recursively go through the children of this node.
-
             if(score >= beta):
               #save into trans table
-              if self.DEBUG2:
-                  print("return score %d" % score)
               return score
 
             if(score > alpha):
                 alpha = score
 
-        if self.DEBUG2:
-            print("return alpha %d" % alpha)
         return alpha
 
 
