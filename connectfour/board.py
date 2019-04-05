@@ -90,7 +90,7 @@ class Board(object):
         Returns true when the game is finished, otherwise false.
         """
         # check for a winner:
-        if (self.winner() != 0):
+        if (self.winner() == 0):
             return False
 
         for i in range(len(self.board[0])):
