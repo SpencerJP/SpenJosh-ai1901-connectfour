@@ -69,7 +69,7 @@ As an example to have a `RandomAgent` play against yourself, we can run:
 
 This next one may be useful for you to run games in quick succession to see how your agent performs against the random agent.
 
-`python -m connectfour.game --player-one Randomlayer --player-two StudentAgent --no-graphics --fast --auto-close`
+`python -m connectfour.game --player-one RandomPlayer --player-two StudentAgent --no-graphics --fast --auto-close`
 
 
 ### Options
