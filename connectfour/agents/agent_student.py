@@ -3,69 +3,24 @@ from connectfour.board import Board
 import copy
 #extension class of board to make up for any missing features it may have, such as counting moves
 #this agent assumes that the height is 6 and width is 7
-class Node(Board):
-    PLAYER_ONE_ID = 1
-    PLAYER_TWO_ID = 2
-
-    def __init__(self, board, node = None, num_moves = 0):
-        if node:
-            self.board = copy.deepcopy(node.board)
-            self.height = node.height
-            self.width = node.width
-            self.num_to_connect = 4
-            self.num_moves = num_moves
-        else:
-            self.height = board.height
-            self.width = board.width
-            self.board = copy.deepcopy(board.board)
-            self.num_moves = num_moves
-            self.num_to_connect = 4
-
-    def try_move(self, move):
-        if move < 0 or move >= self.width or self.board[0][move] != 0:
-            return -1
-
-        for i in range(len(self.board)):
-            if self.board[i][move] != 0:
-                return i - 1
-        return len(self.board) - 1
-
-    def valid_move(self, row, col):
-        return row >= 0 and self.try_move(col) == row
-
-    def valid_moves(self):
-        for col in range(self.width):
-            for row in range(self.height):
-                if self.valid_move(row, col):
-                    yield (row, col)
-
-    def next_state(self, turn):
-        aux = copy.deepcopy(self)
-        aux.num_moves = aux.num_moves + 1
-        aux.last_move = turn
-        print("Turn: (%d, %d)" % turn)
-        aux.board[turn[0]][turn[1]] = aux.get_current_player()
-        print(aux.board[turn[0]][turn[1]])
-        return aux
-
-    def get_current_player(self):
-        if(self.num_moves % 2 == 1):
-            return self.PLAYER_TWO_ID
-        else:
-            return self.PLAYER_ONE_ID
-
-
 
 class StudentAgent(RandomAgent):
     DIMENSIONS = 42
     DEBUG = False
     DEBUG2 = False
+    PLAYER_ONE_ID = 1
+    PLAYER_TWO_ID = 2
     def __init__(self, name):
         super().__init__(name)
         self.MaxDepth = 43
-        self.Debug = True
         self.nodes_counted = 0
-        self.player_id_of_this_agent = -1
+        self.id = -1
+
+    def get_current_player(self, num_moves):
+        if(num_moves % 2 == 1):
+            return self.PLAYER_TWO_ID
+        else:
+            return self.PLAYER_ONE_ID
 
     def debug_print_board(self, board):
         string = ""
@@ -93,13 +48,11 @@ class StudentAgent(RandomAgent):
             A tuple of two integers, (row, col)
         """
 
+
         current_move_number = self.count_moves(board)
 
-        if (self.player_id_of_this_agent == -1):
-            if (current_move_number == 0):
-                self.player_id_of_this_agent = 1
-            else:
-                self.player_id_of_this_agent = 2
+        if self.id == -1:
+            self.id = self.get_current_player(current_move_number)
 
         #valid_moves = board.valid_moves()
         #print("Valid moves: %d, movesSoFar: %d" % (len(list(valid_moves)), current_move_number))
@@ -110,16 +63,14 @@ class StudentAgent(RandomAgent):
         vals = []
         moves = []
 
-        if self.DEBUG:
-            self.nodes_counted = 0
+        self.nodes_counted = 0
 
-        moveno = 0
+        column_number = 0
         for move in valid_moves:
             minimum = -(self.DIMENSIONS - current_move_number) / 2
 
             maximum = (self.DIMENSIONS + 1 - current_move_number) / 2
-            next_node = Node(board, None, current_move_number)
-            next_node = next_node.next_state( move )
+            next_node = board.next_state( self.id, move[1] )
             moves.append( move )
             self.debug_print_board(next_node)
             while(minimum < maximum):
@@ -129,19 +80,18 @@ class StudentAgent(RandomAgent):
                      medium = minimum / 2
                 elif(medium >= 0 and (maximum / 2) > medium):
                      medium = maximum / 2
-                result = int(self.negamax(next_node, medium, medium + 1, 1))
+                result = int(self.negamax(next_node, medium, medium + 1, current_move_number+1, 1))
                 if(result <= medium ):
                      maximum = result
 
                 else:
                     minimum = result
 
-            print("column number: %d, calculated value: %d" % (moveno+1, minimum))
-            moveno = moveno + 1
+            print("column number: %d, calculated value: %d" % (column_number+1, minimum))
+            column_number = column_number + 1
             vals.append( minimum )
 
-        if self.DEBUG:
-            print("Counted %d nodes to make this move." % self.nodes_counted)
+        print("Counted %d nodes to make this move." % self.nodes_counted)
 
         bestMove = moves[vals.index( max(vals) )]
         return bestMove
@@ -184,7 +134,7 @@ class StudentAgent(RandomAgent):
 
 
         #recursive method
-    def negamax(self, node, alpha, beta, depth):
+    def negamax(self, board, alpha, beta, num_moves, depth):
         #returns score of the board position
 
         #node is the game state to evaluate
@@ -196,31 +146,30 @@ class StudentAgent(RandomAgent):
 
         #self.debug_print_board(node)
 
-        if self.DEBUG:
-            self.nodes_counted = self.nodes_counted + 1
+        self.nodes_counted = self.nodes_counted + 1
 
         if depth == self.MaxDepth:
-            return self.evaluateBoardState(node)
-        winner_num = node.winner()
+            return self.evaluateBoardState(board)
+        winner_num = board.winner()
         if (winner_num == 1 or winner_num == 2):
             if self.DEBUG2:
-                self.debug_print_board(node)
-            return -(self.DIMENSIONS - node.num_moves) / 2
+                self.debug_print_board(board)
+            return -(self.DIMENSIONS - num_moves) / 2
         #detect a draw
-        if(node.num_moves >= self.DIMENSIONS - 2):
+        if(num_moves >= self.DIMENSIONS - 2):
             if self.DEBUG2:
-                self.debug_print_board(node)
+                self.debug_print_board(board)
             return 0
 
         #get a list of moves that won't cause you to lose
-        valid_moves = node.valid_moves()
+        valid_moves = board.valid_moves()
 
-        # no valid moves that won't cause a loss
+        # no valid moves that won't cause a loss (TODO)
         if len(list(valid_moves)) == 0:
-           return -(self.DIMENSIONS - node.num_moves) / 2
+           return -(self.DIMENSIONS - num_moves) / 2
 
         # set alpha to the minimum possible value
-        min = -(self.DIMENSIONS - 2 - node.num_moves) / 2
+        min = -(self.DIMENSIONS - 2 - num_moves) / 2
         if(alpha < min):
             alpha = min
             if(alpha >= beta):
@@ -229,7 +178,7 @@ class StudentAgent(RandomAgent):
                 return alpha #prune children.
 
         # set beta to the maximum possible value
-        max = (self.DIMENSIONS - 1 - node.num_moves) / 2
+        max = (self.DIMENSIONS - 1 - num_moves) / 2
         if(beta > max):
             beta = max
             if(alpha >= beta):
@@ -238,16 +187,12 @@ class StudentAgent(RandomAgent):
                 return beta #prune children.
 
         #could include transposition or a lookup table for early game stuff here.
-        valid_moves = node.valid_moves()
+        valid_moves = board.valid_moves()
         for move in valid_moves:
             if(self.DEBUG2):
                 print("move")
-            node2 = copy.deepcopy(node)
-            node2.num_moves = node.num_moves + 1
-            node2.last_move = move
-            node2.board[move[0]][move[1]] = node2.get_current_player()
-            self.debug
-            score = -self.negamax(node2, -beta, -alpha, depth + 1) # recursively go through the children of this node.
+            next_node = board.next_state(self.id, move[1])
+            score = -self.negamax(next_node, -beta, -alpha, num_moves+1, depth + 1) # recursively go through the children of this node.
 
             if(score >= beta):
               #save into trans table

@@ -1,5 +1,4 @@
 from connectfour.agents.agent_student import StudentAgent
-from connectfour.agents.agent_student import Node
 from connectfour.board import Board
 
 import time
