@@ -10,9 +10,10 @@ class StudentAgent(RandomAgent):
     PLAYER_TWO_ID = 2
     def __init__(self, name):
         super().__init__(name)
-        self.MaxDepth = 2
+        self.MaxDepth = 5
         self.nodes_counted = 0
         self.id = -1
+        self.run_once = True
 
     def get_current_player(self, num_moves):
         if(num_moves % 2 == 0 or num_moves == 0):
@@ -71,25 +72,25 @@ class StudentAgent(RandomAgent):
             maximum = int((self.DIMENSIONS + 1 - current_move_number) / 2)
             next_node = board.next_state( self.id, move[1] )
             moves.append( move )
-            while(minimum < maximum):
-
-                medium = int(minimum + (maximum - minimum) / 2)
-                print("min: %d, max: %d, med: %d" % (minimum, maximum, medium))
-                if(medium <= 0 and (minimum / 2) < medium):
-                     medium = minimum / 2
-                elif(medium >= 0 and (maximum / 2) > medium):
-                     medium = maximum / 2
-                result = int(self.negamax(next_node, medium, medium + 1, current_move_number+1, 1))
-                if(result <= medium ):
-                     maximum = result
-
-                else:
-                    minimum = result
-
-            print("column number: %d, calculated value: %d" % (column_number+1, minimum))
-
+            # while(minimum < maximum): #iterative deepening of the alpha/beta limits to prune alot of moves.
+            #
+            #     medium = int(minimum + (maximum - minimum) / 2)
+            #     print("min: %d, max: %d, med: %d" % (minimum, maximum, medium))
+            #     if(medium <= 0 and (minimum / 2) < medium):
+            #          medium = minimum / 2
+            #     elif(medium >= 0 and (maximum / 2) > medium):
+            #          medium = maximum / 2
+            #     result = int(self.negamax(next_node, medium, medium + 1, current_move_number+1, 1))
+            #     if(result <= medium ):
+            #          maximum = result
+            #
+            #     else:
+            #         minimum = result
+            score = self.negamax(next_node, -1000, 1000, current_move_number+1, 1)
+            # print("column number: %d, calculated value: %d" % (column_number+1, minimum))
+            print("column number: %d, calculated value: %d" % (column_number+1, score))
             column_number = column_number + 1
-            vals.append( minimum )
+            vals.append( score ) #todo change to minimum
 
         print("Counted %d nodes to make this move." % self.nodes_counted)
 
@@ -150,15 +151,13 @@ class StudentAgent(RandomAgent):
         #self.debug_print_board(board)
 
         #print("before - alpha: %d, beta: %d" %( alpha, beta))
+
         self.nodes_counted = self.nodes_counted + 1
 
 
         winner_num = board.winner()
         if(winner_num != 0):
-            if (self.id == winner_num):
                 return int((self.DIMENSIONS - num_moves) / 2)
-            else:
-                return int(-(self.DIMENSIONS - num_moves) / 2)
         #detect a draw
         if(num_moves >= self.DIMENSIONS - 2):
             return 0
@@ -171,8 +170,8 @@ class StudentAgent(RandomAgent):
             print("test-1")
             return int(-(self.DIMENSIONS - num_moves) / 2)
 
-        # set alpha to the minimum possible value
-        min = int(-(self.DIMENSIONS - 2 - num_moves) / 2)
+        # set alpha to the minimum possible value ##### todo -2 if you know that your opponent cant win
+        min = int(-(self.DIMENSIONS - num_moves) / 2)
         if(alpha < min):
             alpha = min
             if(alpha >= beta):
@@ -180,8 +179,8 @@ class StudentAgent(RandomAgent):
                     print("fuck1")
                 return alpha #prune children.
 
-        # set beta to the maximum possible value
-        max = int((self.DIMENSIONS - 1 - num_moves) / 2)
+        # set beta to the maximum possible value  ##### todo -1 if you KNOW you cannot win this turn
+        max = int((self.DIMENSIONS - num_moves) / 2)
         if(beta > max):
             beta = max
             if(alpha >= beta):
@@ -199,6 +198,7 @@ class StudentAgent(RandomAgent):
             next_node = board.next_state(self.get_current_player(num_moves), move[1])
             #print("Recursively calling negamax, depth: %d" % depth)
             score = -self.negamax(next_node, -beta, -alpha, num_moves+1, depth + 1) # recursively go through the children of this node.
+
             #print("Returned %d" % score)
             #print("after - score: %d, alpha: %d, beta: %d" %(score, alpha, beta))
             if(score >= beta):

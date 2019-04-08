@@ -8,37 +8,36 @@ boards =   [("0001222"
    "2001222" #(2,2), 1's turn https://i.imgur.com/IXoqPJq.png
    "1022111"
    "1021222"
-   "1022111")]
-    # [(
-#  "0012111"
-#  "0022122"
-#  "0012211" #just a test, current turn is 1
-#  "2121122"
-#  "1112211"
-#  "2221122"),
-# ("0012211"
-#  "0011122"
-#  "2112211" #should result in (1,1), current turn is 1
-#  "2221122"
-#  "1112211"
-#  "2221122"),
-#  ("0012211"
-#   "0021122"
-#   "1212211" #should result in (1,0), current turn is 1
-#   "1221122"
-#   "1112211"
-#   "2221122"),
-#   ("1200011"
-#    "2100022"
-#    "1120011"
-#    "1221122" #current turn is 1
-#    "1112211"
-#    "2221122"),
+   "1022111"),
+    ("0022212"
+     "0011121"
+     "0022212" #expected (2,1), current turn is 1 https://i.imgur.com/y2Kpq0C.png  left column = -3 right column = 0
+     "2211121"
+     "1122212"
+     "2211121"),
+    ("0012211"
+     "0011122"
+     "2112211" #should result in (1,1), current turn is 1 https://i.imgur.com/N9yD8DF.png, left column = 0, right column = 2
+     "2221122"
+     "1112211"
+     "2221122"),
+     ("0012211"
+      "0021122"
+      "1212211" #should result in (1,0), current turn is 1
+      "1221122"
+      "1112211"
+      "2221122")]
+      # ("1200021"
+      # "1200012"
+      # "2120021"
+      # "1221221" #should result in (2,4), left=-1,middle=-1,right=1
+      # "2112112"
+      # "1221221")]
 
 
-#expected_values = ["?", (1,1), (1,0), "?", (2,2), (2,2)]
+expected_values = [(2,2), (2,1), (1,1), (1,0)] #(2,4)]
 
-expected_values = [(2, 2)]
+#expected_values = [(2, 2)]
 
 
 def debug_print_board(boardclass):
