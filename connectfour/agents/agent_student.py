@@ -87,6 +87,22 @@ class StudentAgent(RandomAgent):
             next_state(turn)
             winner()
         """
-				
-        return random.uniform(0, 1)
-
+        #for row in board.board:
+        #    print(row)
+        if board.winner() == 1:
+            score = 10000
+        elif board.winner() == 2:
+            score = -10000
+        else:
+            score_sum = []
+            middle_col = round((board.width+1)/2)-1
+            for row in board.board:
+                for col in range(board.width):
+                    if row[col] == 1:
+                        score_sum.append(middle_col-abs(middle_col-col))
+            print(score_sum)
+            score = sum(score_sum)
+        for row in board.board:
+            print(row)
+        print(score)
+        return score
