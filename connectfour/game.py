@@ -6,7 +6,8 @@ from connectfour.board import Board
 from connectfour.agents.computer_player import MonteCarloAgent, RandomAgent
 from connectfour.agents.agent_student import StudentAgent
 from connectfour.agents.agent import HumanPlayer
-from connectfour.agents.agent_hard import HardAgent
+#agent_hard is not provided to us
+#from connectfour.agents.agent_hard import HardAgent
 
 
 MAX_GAME_WIDTH = MAX_GAME_HEIGHT = 100
@@ -17,7 +18,7 @@ PLAYER_TYPE_MAP = {
     'RandomAgent': RandomAgent,
     'MonteCarloAgent': MonteCarloAgent,
     'StudentAgent' : StudentAgent,
-    'HardAgent' : HardAgent,
+    #'HardAgent' : HardAgent,
 }
 
 
