@@ -13,7 +13,7 @@ class StudentAgent(RandomAgent):
         self.MaxDepth = 5
         self.nodes_counted = 0
         self.id = -1
-        self.run_once = True
+        self.run_once = False
 
     def get_current_player(self, num_moves):
         if(num_moves % 2 == 0 or num_moves == 0):
@@ -86,11 +86,15 @@ class StudentAgent(RandomAgent):
             #
             #     else:
             #         minimum = result
-            score = self.negamax(next_node, -1000, 1000, current_move_number+1, 1)
+            # if (column_number == 2):
+            #     self.run_once = True
+            score = self.negamax(next_node, -self.MaxDepth, self.MaxDepth, current_move_number+1, 0)
+            if (self.run_once == True):
+                self.run_once = False
             # print("column number: %d, calculated value: %d" % (column_number+1, minimum))
-            print("column number: %d, calculated value: %d" % (column_number+1, score))
+            print("column number: %d, calculated value: %d" % (column_number+1, score[0]))
             column_number = column_number + 1
-            vals.append( score ) #todo change to minimum
+            vals.append( score[0] ) #todo change to minimum
 
         print("Counted %d nodes to make this move." % self.nodes_counted)
 
@@ -128,11 +132,13 @@ class StudentAgent(RandomAgent):
         return bestVal
 
     #returns moves that won't cause the agent to lose next turn
-    def valid_non_losing_moves(self, board):
-
+    def valid_non_losing_moves(self, board, current_player_id):
         valid_moves = board.valid_moves()
-
-        ## TODO: remove all moves that will cause you to lose the turn after
+        for move in valid_moves:
+            next_node = board.next_state(current_player_id, move[1])
+            winner_num = next_node.winner()
+            if(winner_num == current_player_id or winner_num == 0):
+                yield(move)
         return valid_moves
 
 
@@ -151,67 +157,66 @@ class StudentAgent(RandomAgent):
         #self.debug_print_board(board)
 
         #print("before - alpha: %d, beta: %d" %( alpha, beta))
-
         self.nodes_counted = self.nodes_counted + 1
 
 
         winner_num = board.winner()
         if(winner_num != 0):
-                return int((self.DIMENSIONS - num_moves) / 2)
+                if (self.run_once):
+                    self.debug_print_board(board)
+                return ((self.DIMENSIONS - num_moves) / 2, False)
         #detect a draw
         if(num_moves >= self.DIMENSIONS - 2):
-            return 0
+            return (0, False)
 
         #get a list of moves that won't cause you to lose
-        valid_moves = board.valid_moves()
+        valid_moves = self.valid_non_losing_moves(board, self.get_current_player(num_moves))
 
         # no valid moves that won't cause a loss (TODO)
         if len(list(valid_moves)) == 0:
-            print("test-1")
-            return int(-(self.DIMENSIONS - num_moves) / 2)
+            return (-(self.DIMENSIONS - num_moves) / 2, False)
 
         # set alpha to the minimum possible value ##### todo -2 if you know that your opponent cant win
-        min = int(-(self.DIMENSIONS - num_moves) / 2)
+        min = -(self.DIMENSIONS - num_moves) / 2
         if(alpha < min):
             alpha = min
             if(alpha >= beta):
-                if(alpha == 15):
-                    print("fuck1")
-                return alpha #prune children.
+                return (alpha, False) #prune children.
 
         # set beta to the maximum possible value  ##### todo -1 if you KNOW you cannot win this turn
-        max = int((self.DIMENSIONS - num_moves) / 2)
+        max = (self.DIMENSIONS - num_moves) / 2
         if(beta > max):
             beta = max
             if(alpha >= beta):
-                if(beta == 15):
-                    print("fuck2")
-                return beta #prune children.
+                return (beta, False)  #prune children.
 
         #could include transposition or a lookup table for early game stuff here.
 
         if depth == self.MaxDepth:
-                    return self.evaluateBoardState(board)
+                    return (self.evaluateBoardState(board), True)
 
-        valid_moves = board.valid_moves()
+        valid_moves = self.valid_non_losing_moves(board, self.get_current_player(num_moves))
         for move in valid_moves:
             next_node = board.next_state(self.get_current_player(num_moves), move[1])
             #print("Recursively calling negamax, depth: %d" % depth)
-            score = -self.negamax(next_node, -beta, -alpha, num_moves+1, depth + 1) # recursively go through the children of this node.
+            result = self.negamax(next_node, -beta, -alpha, num_moves+1, depth + 1) # recursively go through the children of this node.
 
-            #print("Returned %d" % score)
-            #print("after - score: %d, alpha: %d, beta: %d" %(score, alpha, beta))
-            if(score >= beta):
-              #save into trans table
-              return score
+            #if (self.run_once):
+                #print("after - score: %d, alpha: %d, beta: %d, depth: %d, my turn?: %r" %(result[0], alpha, beta, depth, (self.get_current_player(num_moves) == self.id)))
 
-            if(score > alpha):
-                alpha = score
+            #have to "flip" the sign of the result score as part of the minmax, which is why they all have negative signs
+            if(-result[0] >= beta):
+              #todo save into trans table
+              #prune
+              return (-result[0], False)
 
-        if(alpha == 15):
-            print("fuck3")
-        return alpha
+            if(-result[0] > alpha):
+                if(result[1]==False):
+                    alpha = -result[0]
 
+
+
+        return (alpha, False)
 
 
 
