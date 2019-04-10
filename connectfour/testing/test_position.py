@@ -3,18 +3,24 @@ from connectfour.board import Board
 
 import time
 
-boards =   [("0000000"
-           "1000000"
-           "2000000" #(2,2), 1's turn https://i.imgur.com/IXoqPJq.png
-           "1020000"
-           "1020000"
-           "1020000"),
-           ("0000000"
-          "0000000"
-          "0000000" #(2,2), 1's turn https://i.imgur.com/IXoqPJq.png
-          "0010000"
-          "0010000"
-          "0010000"),
+boards =    [("0000000"
+              "0000000"
+              "0000000" #(2,2), 1's turn https://i.imgur.com/IXoqPJq.png
+              "0010000"
+              "0010000"
+              "0010000"),
+               ("0000000"
+                "0000000"
+                "0000000" #(2,2), 1's turn https://i.imgur.com/IXoqPJq.png
+                "0020000"
+                "0020000"
+                "0020000"),
+          ("0000000"
+         "1000000"
+         "2000000" #(2,2), 1's turn https://i.imgur.com/IXoqPJq.png
+         "1020000"
+         "1020000"
+         "1020000"),
             ("0000000"
             "0000000"
             "0000000" #(2,2), 1's turn https://i.imgur.com/IXoqPJq.png
@@ -53,9 +59,9 @@ boards =   [("0000000"
               "1221221")]
 
 
-expected_values = [(2,2), (2,2), "?", (2,2), (2,1), (1,1), (1,0), (2,4)]
+expected_values = [(2,2), (2,2), (2,2), "?", (2,2), (2,1), (1,1), (1,0), (2,4)]
 
-#expected_values = [(2, 2)]
+#expected_values = [(2, 2), (2, 2)]
 
 
 def debug_print_board(boardclass):

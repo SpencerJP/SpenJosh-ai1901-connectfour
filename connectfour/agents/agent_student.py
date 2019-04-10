@@ -5,15 +5,15 @@ import copy
 #this agent assumes that the height is 6 and width is 7
 
 class StudentAgent(RandomAgent):
-    DIMENSIONS = 42
     PLAYER_ONE_ID = 1
     PLAYER_TWO_ID = 2
     def __init__(self, name):
         super().__init__(name)
-        self.MaxDepth = 5
+        self.MaxDepth = 4
         self.nodes_counted = 0
         self.id = -1
         self.run_once = False
+        self.dimensions = -1
 
     def get_current_player(self, num_moves):
         if(num_moves % 2 == 0 or num_moves == 0):
@@ -50,9 +50,13 @@ class StudentAgent(RandomAgent):
 
         current_move_number = self.count_moves(board)
 
+        #check which player this agent is going to be
         if self.id == -1:
             self.id = self.get_current_player(current_move_number)
-            print("Current Player is %d" % self.id)
+            print("current player is %d" %self.id)
+        #check board size
+        if self.dimensions == -1:
+            self.dimensions = board.width * board.height
 
         #valid_moves = board.valid_moves()
         #print("Valid moves: %d, movesSoFar: %d" % (len(list(valid_moves)), current_move_number))
@@ -67,9 +71,9 @@ class StudentAgent(RandomAgent):
 
         column_number = 0
         for move in valid_moves:
-            minimum = int(-(self.DIMENSIONS - current_move_number) / 2)
+            minimum = int(-(self.dimensions - current_move_number) / 2)
 
-            maximum = int((self.DIMENSIONS + 1 - current_move_number) / 2)
+            maximum = int((self.dimensions + 1 - current_move_number) / 2)
             next_node = board.next_state( self.id, move[1] )
             moves.append( move )
             # while(minimum < maximum): #iterative deepening of the alpha/beta limits to prune alot of moves.
@@ -85,16 +89,16 @@ class StudentAgent(RandomAgent):
             #          maximum = result
             #
             #     else:
-            #         minimum = result
-            # if (column_number == 2):
-            #     self.run_once = True
-            score = self.negamax(next_node, -self.MaxDepth, self.MaxDepth, current_move_number+1, 0)
+            #        minimum = result
+            if (column_number == 0):
+                self.run_once = False
+            score = -self.negamax(next_node, minimum, maximum, current_move_number)
             if (self.run_once == True):
                 self.run_once = False
             # print("column number: %d, calculated value: %d" % (column_number+1, minimum))
-            print("column number: %d, calculated value: %d" % (column_number+1, score[0]))
+            print("column number: %d, calculated value: %d" % (column_number+1, score))
             column_number = column_number + 1
-            vals.append( score[0] ) #todo change to minimum
+            vals.append( score ) #todo change to minimum
 
         print("Counted %d nodes to make this move." % self.nodes_counted)
 
@@ -143,80 +147,106 @@ class StudentAgent(RandomAgent):
 
 
         #recursive method
-    def negamax(self, board, alpha, beta, num_moves, depth):
-        #returns score of the board position
+    def negamax(self, board, alpha, beta, num_moves, sign=1, depth=0):
+        """returns score of the board position
 
-        #node is the game state to evaluate
-        #alpha is the alpha value for the current node,
-        #beta is the beta value for the current node
+        #board is the game state to evaluate
+        alpha is the alpha value for the current node,
+        beta is the beta value for the current node
+        num_moves is the amount of moves that have been made so far. This is used in heuristic calculations as well
+        as determining who's turn it is.
+        sign is either 1 or -1 depending on whether board's last move is our agent's move or the enemy's.
+        1 for our move, -1 for enemy move.
+        depth is how deep our search has gone so far, beginning at 0 every time.
+        """
 
 
         ## TODO:  make sure the current player will not win this move
 
+        #print("last_move: (%d, %d), sign: %d" % (board.last_move[0], board.last_move[1], sign))
+        #self.debug_print_board(board)
         #print("depth: %d, alpha: %d, beta: %d" % (depth, alpha, beta))
         #self.debug_print_board(board)
 
         #print("before - alpha: %d, beta: %d" %( alpha, beta))
         self.nodes_counted = self.nodes_counted + 1
 
-
+        #check if this board has a winner and return if it does
         winner_num = board.winner()
         if(winner_num != 0):
-                if (self.run_once):
-                    self.debug_print_board(board)
-                return ((self.DIMENSIONS - num_moves) / 2, False)
+                if self.run_once == True:
+                    print("Passing up the value %d (terminal branch), depth: %d" % (sign * (self.dimensions - num_moves) / 2, depth))
+                if (winner_num == self.id):
+                    return sign * -int((self.dimensions - num_moves) / 2)
+                else:
+                    return sign * int((self.dimensions - num_moves) / 2)
         #detect a draw
-        if(num_moves >= self.DIMENSIONS - 2):
-            return (0, False)
+        if(num_moves >= self.dimensions - 2):
+            return 0
 
         #get a list of moves that won't cause you to lose
         valid_moves = self.valid_non_losing_moves(board, self.get_current_player(num_moves))
 
         # no valid moves that won't cause a loss (TODO)
         if len(list(valid_moves)) == 0:
-            return (-(self.DIMENSIONS - num_moves) / 2, False)
+            return sign * (self.dimensions - num_moves) / 2
 
         # set alpha to the minimum possible value ##### todo -2 if you know that your opponent cant win
-        min = -(self.DIMENSIONS - num_moves) / 2
+        min = int(-(self.dimensions - num_moves) / 2)
         if(alpha < min):
             alpha = min
             if(alpha >= beta):
-                return (alpha, False) #prune children.
+                if(self.run_once):
+                    print("min %d is less than alpha %d, pruning, depth: %d" % (min, alpha, depth))
+                return alpha #prune children.
 
         # set beta to the maximum possible value  ##### todo -1 if you KNOW you cannot win this turn
-        max = (self.DIMENSIONS - num_moves) / 2
+        max = int( (self.dimensions - num_moves) / 2)
         if(beta > max):
             beta = max
             if(alpha >= beta):
-                return (beta, False)  #prune children.
+                if(self.run_once):
+                    print("max %d is greater than beta %d, pruning, depth: %d" % (min, beta, depth))
+                return beta  #prune children.
 
         #could include transposition or a lookup table for early game stuff here.
 
         if depth == self.MaxDepth:
-                    return (self.evaluateBoardState(board), True)
+                    maxdepthvalue = self.evaluateBoardState(board)
+                    if (maxdepthvalue <= alpha):
+                        return alpha
+                    elif (maxdepthvalue >= beta):
+                        return beta
+                    return maxdepthvalue
 
         valid_moves = self.valid_non_losing_moves(board, self.get_current_player(num_moves))
+        value  = min
         for move in valid_moves:
-            next_node = board.next_state(self.get_current_player(num_moves), move[1])
+            next_node = board.next_state(self.get_current_player(num_moves+1), move[1])
             #print("Recursively calling negamax, depth: %d" % depth)
-            result = self.negamax(next_node, -beta, -alpha, num_moves+1, depth + 1) # recursively go through the children of this node.
+            result = -self.negamax(next_node, -beta, -alpha, num_moves+1, -sign, depth + 1) # recursively go through the children of this node.
+            if (result > value):
+                if(self.run_once):
+                    print("Result %d is larger than min value %d"  % (result, value))
+                value = result
+            else:
+                if(self.run_once):
+                    print("Result %d is smaller than min value %d" % (result, value))
+
 
             #if (self.run_once):
                 #print("after - score: %d, alpha: %d, beta: %d, depth: %d, my turn?: %r" %(result[0], alpha, beta, depth, (self.get_current_player(num_moves) == self.id)))
 
-            #have to "flip" the sign of the result score as part of the minmax, which is why they all have negative signs
-            if(-result[0] >= beta):
-              #todo save into trans table
-              #prune
-              return (-result[0], False)
+            if(result > alpha):
+                alpha = result
 
-            if(-result[0] > alpha):
-                if(result[1]==False):
-                    alpha = -result[0]
+            if(alpha >= beta):
+                break
 
 
-
-        return (alpha, False)
+        if(self.run_once):
+            print("Passing up the value %d, depth: %d" % (value, depth))
+        return value
 
 
 
