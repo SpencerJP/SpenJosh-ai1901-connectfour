@@ -3,13 +3,7 @@ from connectfour.board import Board
 
 import time
 
-boards = [("0001221"
-           "1002121"
-           "2001212" #(2,2), 1's turn https://i.imgur.com/IXoqPJq.png
-           "1022211"
-           "1021122"
-           "1021211"),
-           ("0000000"
+boards = [("0000000"
               "0000000"
               "0000000" #(2,2), 1's turn https://i.imgur.com/IXoqPJq.png
               "0010000"
@@ -51,16 +45,10 @@ boards = [("0001221"
               "1212211" #should result in (1,0), current turn is 1
               "1221122"
               "1112211"
-              "2221122"),
-              ("1200021"
-              "1200012"
-              "2120021"
-              "1221221" #should result in (2,4), left=-1,middle=-1,right=1
-              "2112112"
-              "1221221")]
+              "2221122")]
 
 
-expected_values = [(2,2), (2,2), (2,2), "?", (2,2), (2,1), (1,1), (1,0), (2,4)]
+expected_values = [(2,2), (2,2), "?", (2,2), (2,1), (1,1), (1,0)]
 
 # expected_values = [(2, 2)]
 
@@ -93,12 +81,17 @@ def main():
     for position in boards:
             convertStringToBoard(position, gameboard)
             agent = StudentAgent(str(i))
+            agent.debug = True
             result = agent.get_move(gameboard)
-            print("Position no: %d, Result Move: (%d, %d)" % (i, result[0], result[1]))
-            if (expected_values[i] == "?" or expected_values[i] == result):
-                print("Success!")
+            if result==None:
+                print("your test is flawed as there is already a winner somewhere on the board.")
+
             else:
-                print("Failure")
+                print("Position no: %d, Result Move: (%d, %d)" % (i, result[0], result[1]))
+                if (expected_values[i] == "?" or expected_values[i] == result):
+                    print("Success!")
+                else:
+                    print("Failure")
             i = i + 1
 
 

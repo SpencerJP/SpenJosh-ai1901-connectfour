@@ -15,6 +15,7 @@ class StudentAgent(RandomAgent):
         self.run_once = False
         self.dimensions = -1
         self.enemy_id = -1
+        self.debug = False
 
     def get_current_player(self, num_moves):
         if(num_moves % 2 == 0 or num_moves == 0):
@@ -47,7 +48,10 @@ class StudentAgent(RandomAgent):
         Returns:
             A tuple of two integers, (row, col)
         """
-
+        winner_num = board.winner()
+        if (winner_num != 0):
+            print("FAILURE, get_move() cannot be called as there is already a winner. winner id is %d" % winner_num)
+            return
 
         start = time.time()
         current_move_number = self.count_moves(board)
@@ -56,7 +60,8 @@ class StudentAgent(RandomAgent):
         if self.id == -1:
             self.id = self.get_current_player(current_move_number)
             self.enemy_id = self.get_current_player(current_move_number+1)
-            print("current player is %d" %self.id)
+            if (self.debug):
+                print("current player is %d" %self.id)
         #check board size
         if self.dimensions == -1:
             self.dimensions = board.width * board.height
@@ -64,11 +69,14 @@ class StudentAgent(RandomAgent):
         #valid_moves = board.valid_moves()
         #print("Valid moves: %d, movesSoFar: %d" % (len(list(valid_moves)), current_move_number))
         valid_moves = self.valid_non_losing_moves(board, current_move_number)
-        if len(list(valid_moves)) == 0:
-            valid_moves = board.valid_moves()
-        else:
-            valid_moves = self.valid_non_losing_moves(board, current_move_number)
+        # if len(list(valid_moves)) == 0:
+        #     valid_moves = board.valid_moves()
+        # else:
+        #     valid_moves = self.valid_non_losing_moves(board, current_move_number)
 
+        for move in valid_moves:
+            print("valid move: col(%d)" % (move[1] + 1))
+        valid_moves = self.valid_non_losing_moves(board, current_move_number)
         # no valid moves that won't cause a loss
 
         vals = []
@@ -99,22 +107,29 @@ class StudentAgent(RandomAgent):
             #        minimum = result
             if (column_number == 0):
                 self.run_once = False
-            score = self.negamax(next_node, minimum, maximum, current_move_number)
+            score = -self.negamax(next_node, minimum, maximum, current_move_number)
             if (self.run_once == True):
                 self.run_once = False
             # print("column number: %d, calculated value: %d" % (column_number+1, minimum))
-            print("column number: %d, calculated value: %d" % (column_number+1, score))
+            if (self.debug):
+                print("column number: %d, calculated value: %d" % (column_number+1, score))
             column_number = column_number + 1
             vals.append( score ) #todo change to minimum
 
-        print("Counted %d nodes to make this move." % self.nodes_counted)
+        if (self.debug):
+            print("Counted %d nodes to make this move." % self.nodes_counted)
+        if (len(vals) != 0):
+            bestMove = moves[vals.index( max(vals) )]
+        else:
+            valid_moves = board.valid_moves()
+            bestMove = next(valid_moves)
 
-        bestMove = moves[vals.index( max(vals) )]
         next_node = board.next_state( self.id, bestMove[1] )
 
         end = time.time()
-        print("Took %r seconds to make this move." % (end - start))
-        self.debug_print_board(next_node)
+        if (self.debug):
+            print("Took %r seconds to make this move." % (end - start))
+            self.debug_print_board(next_node)
         return bestMove
 
 
@@ -157,11 +172,22 @@ class StudentAgent(RandomAgent):
         other_player = self.get_current_player(num_moves+1)
         valid_moves = board.valid_moves()
         for move in valid_moves:
-            next_node = board.next_state(other_player, move[1])
-            winner_num = next_node.winner()
-            if(winner_num != other_player or winner_num == 0):
+            my_move = board.next_state(current_player, move[1])
+            winner_num = my_move.winner()
+            if(winner_num != 0):
                 yield(move)
-        return valid_moves
+                continue
+            enemy_valid_moves = my_move.valid_moves()
+            failure = False
+            for enemy_move in enemy_valid_moves:
+                node_after = my_move.next_state(other_player, enemy_move[1])
+                winner_num = node_after.winner()
+                if(winner_num != 0):
+                    failure = True
+                    break
+            if(failure == False):
+                yield(move)
+
 
 
         #recursive method
@@ -195,15 +221,19 @@ class StudentAgent(RandomAgent):
                 if self.run_once == True:
                     print("Passing up the value %d (terminal branch), depth: %d" % (sign * (self.dimensions - num_moves) / 2, depth))
                 if (winner_num == self.id):
-                    return sign * int((self.dimensions - num_moves) / 2)
-                else:
                     return sign * -int((self.dimensions - num_moves) / 2)
+                else:
+                    return sign * int((self.dimensions - num_moves) / 2)
         #detect a draw
         if(num_moves >= self.dimensions - 2):
             return 0
 
-        #get a list of moves that won't cause you to lose
-        valid_moves = self.valid_non_losing_moves(board, num_moves)
+        #get a list of moves that won't cause you to lose, but only if we're on near the top of the tree,
+        #because this slows the algorithm down significantly
+        if (depth < 2):
+            valid_moves = self.valid_non_losing_moves(board, num_moves)
+        else:
+            valid_moves = board.valid_moves()
 
         # no valid moves that won't cause a loss (TODO)
         if len(list(valid_moves)) == 0:
@@ -242,7 +272,7 @@ class StudentAgent(RandomAgent):
         for move in valid_moves:
             next_node = board.next_state(self.get_current_player(num_moves+1), move[1])
             #print("Recursively calling negamax, depth: %d" % depth)
-            result = self.negamax(next_node, -beta, -alpha, num_moves+1, -sign, depth + 1) # recursively go through the children of this node.
+            result = -self.negamax(next_node, -beta, -alpha, num_moves+1, -sign, depth + 1) # recursively go through the children of this node.
             if (result > value):
                 if(self.run_once):
                     print("Result %d is larger than min value %d"  % (result, value))
