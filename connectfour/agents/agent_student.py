@@ -1,5 +1,6 @@
 from connectfour.agents.computer_player import RandomAgent
 from connectfour.board import Board
+import math
 import time
 #extension class of board to make up for any missing features it may have, such as counting moves
 #this agent assumes that the height is 6 and width is 7
@@ -88,12 +89,14 @@ class StudentAgent(RandomAgent):
             #if there is a single move that they can make in which they can win,
             #this whole move of ours is a bust, so don't yield it.
             for enemy_move in enemy_valid_moves:
+
                 node_after = my_move.next_state(other_player, enemy_move[1])
                 winner_num = node_after.winner()
                 if(winner_num != 0):
                     failure = True
                     break
             if(failure == False):
+
                 sum += 1
         return sum
 
@@ -132,12 +135,26 @@ class StudentAgent(RandomAgent):
                 print("FAILURE, get_move() cannot be called as there is already a winner. winner id is %d" % winner_num)
                 return
 
-        start = -1
-        if(self.debug):
-            start = time.time()
+        #start = time.time()
 
         #check how many moves have occurred so far on this board.
         current_move_number = self.count_moves(board)
+
+        #variable depth to make the algorithm less slow
+
+
+        #self.MaxDepth = int(math.sqrt(current_move_number)) #i trialed this and it does make it faster but it's super shit
+        if(current_move_number == 0):
+            #hardcoded first move because there is no point calculating anything.
+            return (5, 3)
+        elif(current_move_number < 5):
+            self.MaxDepth = 2
+        elif(current_move_number < 10):
+            self.MaxDepth = 3
+        elif(current_move_number < 20):
+            self.MaxDepth = 4
+        elif(current_move_number < 27):
+            self.MaxDepth = 7
 
 
         #check which player this agent is going to be and set it (as in id, will be either 1 or 2)
@@ -205,9 +222,10 @@ class StudentAgent(RandomAgent):
 
         next_node = board.next_state( self.id, bestMove[1] )
 
+        #end = time.time()
+        #print("Took %r seconds to make this move." % (end - start))
+
         if (self.debug):
-            end = time.time()
-            print("Took %r seconds to make this move." % (end - start))
             self.debug_print_board(next_node)
 
         return bestMove
@@ -365,4 +383,15 @@ class StudentAgent(RandomAgent):
             winner()
         """
 
+        score_sum = []
+        middle_col = round((board.width+1)/2)-1
+        for row in board.board:
+            for col in range(board.width):
+                if row[col] == 1:
+                    score_sum.append(middle_col-abs(middle_col-col))
+    #    print(score_sum)
+        score = sum(score_sum)
+        #for row in board.board:
+        #    print(row)
+        #print(score)*/
         return 0
