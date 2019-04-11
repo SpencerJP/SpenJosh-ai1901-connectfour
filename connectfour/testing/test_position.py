@@ -3,7 +3,13 @@ from connectfour.board import Board
 
 import time
 
-boards =    [("0000000"
+boards = [("0001221"
+           "1002121"
+           "2001212" #(2,2), 1's turn https://i.imgur.com/IXoqPJq.png
+           "1022211"
+           "1021122"
+           "1021211"),
+           ("0000000"
               "0000000"
               "0000000" #(2,2), 1's turn https://i.imgur.com/IXoqPJq.png
               "0010000"
@@ -27,12 +33,7 @@ boards =    [("0000000"
             "0010000"
             "0020000"
             "0010000"),
-           ("0001222"
-           "1002111"
-           "2001222" #(2,2), 1's turn https://i.imgur.com/IXoqPJq.png
-           "1022111"
-           "1021222"
-           "1022111"),
+
             ("0022212"
              "0011121"
              "0022212" #expected (2,1), current turn is 1 https://i.imgur.com/y2Kpq0C.png  left column = -3 right column = 0
@@ -61,7 +62,7 @@ boards =    [("0000000"
 
 expected_values = [(2,2), (2,2), (2,2), "?", (2,2), (2,1), (1,1), (1,0), (2,4)]
 
-#expected_values = [(2, 2), (2, 2)]
+# expected_values = [(2, 2)]
 
 
 def debug_print_board(boardclass):
@@ -92,10 +93,8 @@ def main():
     for position in boards:
             convertStringToBoard(position, gameboard)
             agent = StudentAgent(str(i))
-            start = time.time()
             result = agent.get_move(gameboard)
-            end = time.time()
-            print("Position no: %d, Result Move: (%d, %d), Time taken: %d" % (i, result[0], result[1], (end - start)))
+            print("Position no: %d, Result Move: (%d, %d)" % (i, result[0], result[1]))
             if (expected_values[i] == "?" or expected_values[i] == result):
                 print("Success!")
             else:

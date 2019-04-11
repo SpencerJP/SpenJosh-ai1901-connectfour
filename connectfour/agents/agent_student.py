@@ -1,6 +1,6 @@
 from connectfour.agents.computer_player import RandomAgent
 from connectfour.board import Board
-import copy
+import time
 #extension class of board to make up for any missing features it may have, such as counting moves
 #this agent assumes that the height is 6 and width is 7
 
@@ -14,6 +14,7 @@ class StudentAgent(RandomAgent):
         self.id = -1
         self.run_once = False
         self.dimensions = -1
+        self.enemy_id = -1
 
     def get_current_player(self, num_moves):
         if(num_moves % 2 == 0 or num_moves == 0):
@@ -48,11 +49,13 @@ class StudentAgent(RandomAgent):
         """
 
 
+        start = time.time()
         current_move_number = self.count_moves(board)
 
         #check which player this agent is going to be
         if self.id == -1:
             self.id = self.get_current_player(current_move_number)
+            self.enemy_id = self.get_current_player(current_move_number+1)
             print("current player is %d" %self.id)
         #check board size
         if self.dimensions == -1:
@@ -60,7 +63,11 @@ class StudentAgent(RandomAgent):
 
         #valid_moves = board.valid_moves()
         #print("Valid moves: %d, movesSoFar: %d" % (len(list(valid_moves)), current_move_number))
-        valid_moves = board.valid_moves()
+        valid_moves = self.valid_non_losing_moves(board, current_move_number)
+        if len(list(valid_moves)) == 0:
+            valid_moves = board.valid_moves()
+        else:
+            valid_moves = self.valid_non_losing_moves(board, current_move_number)
 
         # no valid moves that won't cause a loss
 
@@ -92,7 +99,7 @@ class StudentAgent(RandomAgent):
             #        minimum = result
             if (column_number == 0):
                 self.run_once = False
-            score = -self.negamax(next_node, minimum, maximum, current_move_number)
+            score = self.negamax(next_node, minimum, maximum, current_move_number)
             if (self.run_once == True):
                 self.run_once = False
             # print("column number: %d, calculated value: %d" % (column_number+1, minimum))
@@ -104,6 +111,9 @@ class StudentAgent(RandomAgent):
 
         bestMove = moves[vals.index( max(vals) )]
         next_node = board.next_state( self.id, bestMove[1] )
+
+        end = time.time()
+        print("Took %r seconds to make this move." % (end - start))
         self.debug_print_board(next_node)
         return bestMove
 
@@ -136,12 +146,20 @@ class StudentAgent(RandomAgent):
         return bestVal
 
     #returns moves that won't cause the agent to lose next turn
-    def valid_non_losing_moves(self, board, current_player_id):
+    def valid_non_losing_moves(self, board, num_moves):
+        """
+        returns: a generator of moves that don't cause a loss the turn after
+
+        board: the node/game state to check
+        num_moves: the amount of moves to get to this point
+        """
+        current_player = self.get_current_player(num_moves)
+        other_player = self.get_current_player(num_moves+1)
         valid_moves = board.valid_moves()
         for move in valid_moves:
-            next_node = board.next_state(current_player_id, move[1])
+            next_node = board.next_state(other_player, move[1])
             winner_num = next_node.winner()
-            if(winner_num == current_player_id or winner_num == 0):
+            if(winner_num != other_player or winner_num == 0):
                 yield(move)
         return valid_moves
 
@@ -177,15 +195,15 @@ class StudentAgent(RandomAgent):
                 if self.run_once == True:
                     print("Passing up the value %d (terminal branch), depth: %d" % (sign * (self.dimensions - num_moves) / 2, depth))
                 if (winner_num == self.id):
-                    return sign * -int((self.dimensions - num_moves) / 2)
-                else:
                     return sign * int((self.dimensions - num_moves) / 2)
+                else:
+                    return sign * -int((self.dimensions - num_moves) / 2)
         #detect a draw
         if(num_moves >= self.dimensions - 2):
             return 0
 
         #get a list of moves that won't cause you to lose
-        valid_moves = self.valid_non_losing_moves(board, self.get_current_player(num_moves))
+        valid_moves = self.valid_non_losing_moves(board, num_moves)
 
         # no valid moves that won't cause a loss (TODO)
         if len(list(valid_moves)) == 0:
@@ -224,7 +242,7 @@ class StudentAgent(RandomAgent):
         for move in valid_moves:
             next_node = board.next_state(self.get_current_player(num_moves+1), move[1])
             #print("Recursively calling negamax, depth: %d" % depth)
-            result = -self.negamax(next_node, -beta, -alpha, num_moves+1, -sign, depth + 1) # recursively go through the children of this node.
+            result = self.negamax(next_node, -beta, -alpha, num_moves+1, -sign, depth + 1) # recursively go through the children of this node.
             if (result > value):
                 if(self.run_once):
                     print("Result %d is larger than min value %d"  % (result, value))
