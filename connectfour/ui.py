@@ -203,7 +203,7 @@ def run_headless_game(game):
         row, col = game.current_player.get_move(game.board)
         turn_time_end = time.time()
         print("Turn # %d, %r's turn - took %r" % (turn_count, game.current_player, (turn_time_end - turn_time_start)) )
-
+        
         game.metrics['all_moves'].append( [row, col, game.current_player.id] )
 
         game.board.board[row][col] = game.current_player.id

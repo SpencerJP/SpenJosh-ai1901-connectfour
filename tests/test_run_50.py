@@ -17,7 +17,7 @@ def debug_print_board(boardclass):
 
 def main():
     test_randomagent(10)
-    test_montecarlo(10)
+    #test_montecarlo(10)
 
 
 def test_randomagent(games=30):
@@ -118,4 +118,5 @@ def test_montecarlo(games=30):
             i += 1
         full_time_end = time.time()
         print("Win percentage: %dpercent - Took %d minutes, average turn time was %r seconds" % ( ((winsum/i) * 100), (full_time_end - full_time_start)/60, (full_time_end - full_time_start)/(result[1]/2) ) )
+
 main()
