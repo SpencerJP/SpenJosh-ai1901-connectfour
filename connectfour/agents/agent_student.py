@@ -18,7 +18,7 @@ class StudentAgent(RandomAgent):
         self.width = -1
         self.dimensions = -1
         self.enemy_id = -1
-        self.debug = False
+        self.debug = True
 
     def get_current_player(self, num_moves):
         if(num_moves % 2 == 0 or num_moves == 0):
@@ -135,7 +135,7 @@ class StudentAgent(RandomAgent):
                 print("FAILURE, get_move() cannot be called as there is already a winner. winner id is %d" % winner_num)
                 return
 
-        #start = time.time()
+        start = time.time()
 
         #check how many moves have occurred so far on this board.
         current_move_number = self.count_moves(board)
@@ -143,18 +143,18 @@ class StudentAgent(RandomAgent):
         #variable depth to make the algorithm less slow
 
 
-        #self.MaxDepth = int(math.sqrt(current_move_number)) #i trialed this and it does make it faster but it's super shit
+        self.MaxDepth = min([int(math.sqrt(current_move_number)) + 1, 5]) #i trialed this and it does make it faster but it's super shit
         if(current_move_number == 0):
             #hardcoded first move because there is no point calculating anything.
             return (5, 3)
-        elif(current_move_number < 5):
-            self.MaxDepth = 2
-        elif(current_move_number < 10):
-            self.MaxDepth = 3
-        elif(current_move_number < 20):
-            self.MaxDepth = 4
-        elif(current_move_number < 27):
-            self.MaxDepth = 7
+        # elif(current_move_number < 5):
+        #     self.MaxDepth = 3
+        # elif(current_move_number < 10):
+        #     self.MaxDepth = 5
+        # elif(current_move_number < 20):
+        #     self.MaxDepth = 6
+        # elif(current_move_number < 27):
+        #     self.MaxDepth = 7
 
 
         #check which player this agent is going to be and set it (as in id, will be either 1 or 2)
@@ -186,28 +186,28 @@ class StudentAgent(RandomAgent):
             next_node = board.next_state( self.id, move[1] )
             moves.append( move )
 
-            #TODO: This system reduces the search space significantly, reducing algorithm time.
-            #It isn't currently working but I will make it work. It will allow us to increase the depth.
-            # while(minimum < maximum): #iterative deepening of the alpha/beta limits to prune alot of moves.
-            #
-            #     medium = int(minimum + (maximum - minimum) / 2)
-            #     print("min: %d, max: %d, med: %d" % (minimum, maximum, medium))
-            #     if(medium <= 0 and (minimum / 2) < medium):
-            #          medium = minimum / 2
-            #     elif(medium >= 0 and (maximum / 2) > medium):
-            #          medium = maximum / 2
-            #     result = int(self.negamax(next_node, medium, medium + 1, current_move_number+1, 1))
-            #     if(result <= medium ):
-            #          maximum = result
-            #
-            #     else:
-            #        minimum = result
+            # TODO: This system reduces the search space significantly, reducing algorithm time.
+            # It isn't currently working but I will make it work. It will allow us to increase the depth.
+            while(minimum < maximum): #iterative deepening of the alpha/beta limits to prune alot of moves.
 
-            score = -self.negamax(next_node, minimum, maximum, current_move_number)
+                medium = int(minimum + (maximum - minimum) / 2)
+                #print("min: %d, max: %d, med: %d" % (minimum, maximum, medium))
+                if(medium <= 0 and (minimum / 2) < medium):
+                     medium = minimum / 2
+                elif(medium >= 0 and (maximum / 2) > medium):
+                     medium = maximum / 2
+                result = -int(self.negamax(next_node, medium, medium + 1, current_move_number))
+                if(result <= medium ):
+                     maximum = result
+
+                else:
+                   minimum = result
+
+            #score = -self.negamax(next_node, minimum, maximum, current_move_number)
             # print("column number: %d, calculated value: %d" % (column_number+1, minimum))
             if (self.debug):
-                print("column number: %d, calculated value: %d" % (move[1]+1, score))
-            vals.append( score ) #todo change to minimum
+                print("column number: %d, calculated value: %d" % (move[1]+1, minimum))
+            vals.append( minimum ) #todo change to minimum
 
         if (self.debug):
             print("Counted %d nodes to make this move." % self.nodes_counted)
@@ -222,10 +222,11 @@ class StudentAgent(RandomAgent):
 
         next_node = board.next_state( self.id, bestMove[1] )
 
-        #end = time.time()
-        #print("Took %r seconds to make this move." % (end - start))
+        end = time.time()
+        print("Took %r seconds to make this move." % (end - start))
 
         if (self.debug):
+            print("Placed a piece in (%d, %d)" % (bestMove[0], bestMove[1]))
             self.debug_print_board(next_node)
 
         return bestMove
@@ -383,15 +384,15 @@ class StudentAgent(RandomAgent):
             winner()
         """
 
-        score_sum = []
-        middle_col = round((board.width+1)/2)-1
-        for row in board.board:
-            for col in range(board.width):
-                if row[col] == 1:
-                    score_sum.append(middle_col-abs(middle_col-col))
-    #    print(score_sum)
-        score = sum(score_sum)
-        #for row in board.board:
-        #    print(row)
-        #print(score)*/
+    #     score_sum = []
+    #     middle_col = round((board.width+1)/2)-1
+    #     for row in board.board:
+    #         for col in range(board.width):
+    #             if row[col] == 1:
+    #                 score_sum.append(middle_col-abs(middle_col-col))
+    # #    print(score_sum)
+    #     score = sum(score_sum)
+    #     #for row in board.board:
+    #     #    print(row)
+    #     #print(score)*/
         return 0
