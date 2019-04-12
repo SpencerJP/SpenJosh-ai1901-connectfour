@@ -360,7 +360,7 @@ class StudentAgent(RandomAgent):
 
 
 
-    def evaluateBoardState(self, board):
+    def evaluateBoardState(self, board, num_moves):
 
         """
         Your evaluation function should look at the current state and return a score for it.
@@ -397,7 +397,7 @@ class StudentAgent(RandomAgent):
         score_sum = []
         for row in board.board:
             for col in range(board.width):
-                if row[col] == 1:
+                if row[col] == self.get_current_player(num_moves):
                     score_sum.append(self.middle_col-abs(self.middle_col-col))
 
         score = sum(score_sum)
