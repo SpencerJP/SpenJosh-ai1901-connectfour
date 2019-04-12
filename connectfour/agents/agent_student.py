@@ -19,6 +19,8 @@ class StudentAgent(RandomAgent):
         self.dimensions = -1
         self.enemy_id = -1
         self.debug = True
+        self.transpos_table = {}
+        self.middle_col = -1
 
     def get_current_player(self, num_moves):
         if(num_moves % 2 == 0 or num_moves == 0):
@@ -27,6 +29,7 @@ class StudentAgent(RandomAgent):
             return self.PLAYER_TWO_ID
 
         #returns moves that won't cause the agent to lose next turn
+
     def valid_non_losing_moves(self, board, num_moves):
         """
         returns: a generator of moves that don't cause a loss the turn after
@@ -169,6 +172,7 @@ class StudentAgent(RandomAgent):
             self.height = board.height
             self.width = board.width
             self.dimensions = board.width * board.height
+            self.middle_col = round((board.width+1)/2)-1
 
         #get a generator of moves that will not cause this player to lose
         valid_moves = self.valid_non_losing_moves(board, current_move_number)
@@ -332,6 +336,12 @@ class StudentAgent(RandomAgent):
         for move in valid_moves:
             next_node = board.next_state(self.get_current_player(num_moves+1), move[1])
             result = -self.negamax(next_node, -beta, -alpha, num_moves+1, -sign, depth + 1) # recursively go through the children of this node.
+
+            #self.transpos_table[bytes(next_node)] = value
+
+            if(result >= beta):
+                return result
+
             if (result > value): #if the child node is the biggest so far, replace the previous biggest
                 value = result
 
@@ -384,15 +394,11 @@ class StudentAgent(RandomAgent):
             winner()
         """
 
-    #     score_sum = []
-    #     middle_col = round((board.width+1)/2)-1
-    #     for row in board.board:
-    #         for col in range(board.width):
-    #             if row[col] == 1:
-    #                 score_sum.append(middle_col-abs(middle_col-col))
-    # #    print(score_sum)
-    #     score = sum(score_sum)
-    #     #for row in board.board:
-    #     #    print(row)
-    #     #print(score)*/
-        return 0
+        score_sum = []
+        for row in board.board:
+            for col in range(board.width):
+                if row[col] == 1:
+                    score_sum.append(self.middle_col-abs(self.middle_col-col))
+
+        score = sum(score_sum)
+        return score
