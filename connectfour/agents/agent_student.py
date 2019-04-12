@@ -321,10 +321,10 @@ class StudentAgent(RandomAgent):
 
         #get a list of moves that won't cause you to lose, but only if we're on near the top of the tree,
         #because this slows the algorithm down significantly and we have already called it once
-        if (depth < 2 and sum_of_moves != self.width):
-            valid_moves = self.valid_non_losing_moves(board, num_moves)
-        else:
-            valid_moves = board.valid_moves()
+        # if (depth < 2 and sum_of_moves != self.width):
+        #     valid_moves = self.valid_non_losing_moves(board, num_moves)
+        # else:
+        valid_moves = board.valid_moves()
 
         #set the value to the minimum possible
         value = min
@@ -383,15 +383,15 @@ class StudentAgent(RandomAgent):
             winner()
         """
 
-        score_sum = []
-        middle_col = round((board.width+1)/2)-1
-        for row in board.board:
-            for col in range(board.width):
-                if row[col] == 1:
-                    score_sum.append(middle_col-abs(middle_col-col))
-    #    print(score_sum)
-        score = sum(score_sum)
-        #for row in board.board:
-        #    print(row)
-        #print(score)*/
+    #     score_sum = []
+    #     middle_col = round((board.width+1)/2)-1
+    #     for row in board.board:
+    #         for col in range(board.width):
+    #             if row[col] == 1:
+    #                 score_sum.append(middle_col-abs(middle_col-col))
+    # #    print(score_sum)
+    #     score = sum(score_sum)
+    #     #for row in board.board:
+    #     #    print(row)
+    #     #print(score)*/
         return 0

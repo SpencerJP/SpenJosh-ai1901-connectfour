@@ -191,27 +191,31 @@ def run_exit(game, result):
         output["end_state"] = "draw"
         output["winner_id"] = None
     else:
-        output["end_state"] = "win"
-        output["winner_id"] = result
-
-    output["num_moves"] = game.metrics["num_moves"]
-    output["all_moves"] = game.metrics["all_moves"]
-    print(json.dumps(output))
-    exit(0)
+        return result
+    return -1
 
 
 def run_headless_game(game):
+    turn_count = 0
+    time_sum = 0
     while True:
+        turn_time_start = time.time()
         row, col = game.current_player.get_move(game.board)
+        turn_time_end = time.time()
+        print("Turn # %d, %r's turn - took %r" % (turn_count, game.current_player, (turn_time_end - turn_time_start)) )
 
         game.metrics['all_moves'].append( [row, col, game.current_player.id] )
 
         game.board.board[row][col] = game.current_player.id
-        game.change_turn()
 
         result = game.board.winner()
         if result or game.board.terminal():
-            run_exit(game, result)
+            return run_exit(game, result), turn_count
+
+        game.change_turn()
+        time_sum += (turn_time_end - turn_time_start)
+        turn_count += 1
+
 
 
 def run_graphics_game(game):
@@ -251,4 +255,4 @@ def start_game(game, graphics=True):
     if graphics:
         run_graphics_game(game)
     else:
-        run_headless_game(game)
+        return run_headless_game(game)
