@@ -3,7 +3,7 @@ import random
 from connectfour.agents.monte_carlo import Node, MTCS
 from connectfour.agents.agent import Agent
 
-MAX_DEPTH = 50
+MAX_DEPTH = 2
 
 
 class MonteCarloAgent(Agent):

@@ -17,7 +17,7 @@ def debug_print_board(boardclass):
 
 def main():
     test_randomagent(10)
-    #test_montecarlo(10)
+    test_montecarlo(10)
 
 
 def test_randomagent(games=30):
