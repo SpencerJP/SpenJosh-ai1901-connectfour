@@ -32,6 +32,19 @@ def count_moves(board):
 
     return sum_of_moves
 
+
+def valid_moves_wrapper(board):
+    """Wrap the board.valid_moves() generator in our own organiser that
+    orders the moves centre to outside, going left first if it is uneven."""
+
+    #this optimisation is specific to 6*7 boards, if it isn't 7 wide then abort.
+    if board.width != 7:
+        return board.valid_moves()
+
+    list_valid_moves = list(board.valid_moves())
+    
+
+
 def valid_non_losing_moves(board, num_moves):
     """
     returns: a generator of moves that don't cause a loss the turn after
