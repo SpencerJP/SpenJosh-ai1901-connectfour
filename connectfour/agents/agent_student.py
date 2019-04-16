@@ -89,18 +89,10 @@ class StudentAgent(RandomAgent):
             winner()
         """
         if board.winner() == 1:
-            score = 10000
+            return 10000
         elif board.winner() == 2:
-            score = -10000
-        else:
-            score_sum = []
-            middle_col = round((board.width+1)/2)-1
-            for row in board.board:
-                for col in range(board.width):
-                    if row[col] == 1:
-                        score_sum.append(middle_col-abs(middle_col-col))
-            score = sum(score_sum)
-        return score
+            return -10000
+        return 0
 
 
 def vertical_threat(board_array):
@@ -168,3 +160,20 @@ def diagonal_threat(board_array):
                     elif (board_slice == 2*mask).all():
                         score -= 1
     return score
+
+
+def middle_heuristic(board):
+    """Simple heuristic to favour boards that have more central tokens
+    Returns the sum of the tokens multiplied by their distance from edge of board
+    outer column = 0, middle column = 3 for a 7 column board
+    """
+    middle_score = 0
+    middle_col = round((board.width+1)/2)-1
+    for row in board.board:
+        for col in range(board.width):
+            score = middle_col-abs(middle_col-col)
+            if row[col] == 1:
+                middle_score += score
+            elif row[col] == 2:
+                middle_score -= score
+    return middle_score
