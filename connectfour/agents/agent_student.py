@@ -1,5 +1,6 @@
 from connectfour.agents.computer_player import RandomAgent
 import random
+import numpy as np
 
 class StudentAgent(RandomAgent):
     def __init__(self, name):
