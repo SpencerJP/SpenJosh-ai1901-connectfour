@@ -4,7 +4,7 @@ import random
 class StudentAgent(RandomAgent):
     def __init__(self, name):
         super().__init__(name)
-        self.MaxDepth = 1
+        self.MaxDepth = 5
 
 
     def get_move(self, board):
@@ -100,9 +100,5 @@ class StudentAgent(RandomAgent):
                 for col in range(board.width):
                     if row[col] == 1:
                         score_sum.append(middle_col-abs(middle_col-col))
-            print(score_sum)
             score = sum(score_sum)
-        for row in board.board:
-            print(row)
-        print(score)
         return score
