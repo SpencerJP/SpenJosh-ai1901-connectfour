@@ -87,8 +87,6 @@ class StudentAgent(RandomAgent):
             next_state(turn)
             winner()
         """
-        #for row in board.board:
-        #    print(row)
         if board.winner() == 1:
             score = 10000
         elif board.winner() == 2:
