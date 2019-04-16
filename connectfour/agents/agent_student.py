@@ -92,7 +92,8 @@ class StudentAgent(RandomAgent):
             return 10000
         elif board.winner() == 2:
             return -10000
-        return 0
+        npboard = np.array(board.board)
+        return vertical_threat(npboard) + horizontal_threat(npboard) + diagonal_threat(npboard) + central_heuristic(board)/10
 
 
 def vertical_threat(board_array):
@@ -162,7 +163,7 @@ def diagonal_threat(board_array):
     return score
 
 
-def middle_heuristic(board):
+def central_heuristic(board):
     """Simple heuristic to favour boards that have more central tokens
     Returns the sum of the tokens multiplied by their distance from edge of board
     outer column = 0, middle column = 3 for a 7 column board
