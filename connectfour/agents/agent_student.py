@@ -119,3 +119,27 @@ def vertical_threat(board_array):
             elif (board_array[r:r+4, c] == 2*mask).all():
                 score -= 1
     return score
+
+
+def horizontal_threat(board_array):
+    """Function to determine how many horizontal threats exist
+    returns score for how many more threats player1 has over player2
+    """
+    h, w = board_array.shape
+    score = 0
+
+    masks = [np.array([1,1,1,0]),
+             np.array([1,1,0,1]),
+             np.array([1,0,1,1]),
+             np.array([0,1,1,1])]
+
+
+    for c in range(w-3):
+        for r in range(h):
+            board_slice = board_array[r, c:c+4]
+            for mask in masks:
+                if (board_slice == mask).all():
+                    score += 1
+                elif (board_slice == 2*mask).all():
+                    score -= 1
+    return score
