@@ -321,15 +321,12 @@ class StudentAgent(RandomAgent):
 
 
             if result >= beta:
-                #self.transpos_table[str(next_node.board)] = result
                 return result
 
             # if the result is bigger than the current minimum, set the minimum to the new result
             if result > alpha:
                 alpha = result
 
-        #save upper bound
-        #self.transpos_table[str(next_node.board)] = alpha
         return alpha
 
 
