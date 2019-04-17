@@ -5,6 +5,7 @@ from connectfour.ui import start_game
 from connectfour.board import Board
 from connectfour.agents.computer_player import MonteCarloAgent, RandomAgent
 from connectfour.agents.agent_student import StudentAgent
+from connectfour.agents.agent_heuristic import JoshAgent
 from connectfour.agents.agent import HumanPlayer
 
 
@@ -16,6 +17,7 @@ PLAYER_TYPE_MAP = {
     'RandomAgent': RandomAgent,
     'MonteCarloAgent': MonteCarloAgent,
     'StudentAgent' : StudentAgent,
+    'JoshAgent' : JoshAgent,
 }
 
 
