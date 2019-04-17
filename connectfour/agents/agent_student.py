@@ -167,28 +167,42 @@ class StudentAgent(RandomAgent):
         if current_move_number == 0:
             #hardcoded first move because there is no point calculating anything.
             return ((board.height-1), self.middle_col)
-        if current_move_number < 3:
+        if current_move_number == 1:
+            self.max_depth = 1
+        elif current_move_number < 8:
             self.max_depth = 3
-        if current_move_number < 6:
+        elif current_move_number < 12:
             self.max_depth = 4
-        if current_move_number < 15:
-            self.max_depth = 6
-        if current_move_number < 23:
+        elif current_move_number < 15:
+            self.max_depth = 5
+        elif current_move_number < 23:
             self.max_depth = 8
-        if current_move_number > 30:
+        elif current_move_number > 30:
             self.max_depth = 10
-        else:
-            self.max_depth = min([int(math.sqrt(current_move_number)) + 1, 5])
+            # self.max_depth = min([int(math.sqrt(current_move_number)) + 1, 5])
 
         #check which player this agent is going to be and set it (as in id, will be either 1 or 2)
         if self.id == -1:
             self.id = get_current_player(current_move_number)
             self.enemy_id = get_current_player(current_move_number+1)
 
+        valid_moves = None
+        non_losing_moves_count = count_non_losing_moves(board, current_move_number)
+        #we lose, concede
+        if non_losing_moves_count == 0:
+            valid_moves = valid_moves_wrapper(board)
+            return next(valid_moves)
+        #we only have one available move
+        if non_losing_moves_count == 1:
+            valid_moves = valid_non_losing_moves(board, current_move_number)
+            return next(valid_moves)
+        if non_losing_moves_count == 7:
+            #get all moves
+            valid_moves = valid_moves_wrapper(board)
+        else:
+            #get a generator of moves that will not cause this player to lose
+            valid_moves = valid_non_losing_moves(board, current_move_number)
 
-
-        #get a generator of moves that will not cause this player to lose
-        valid_moves = valid_non_losing_moves(board, current_move_number)
 
         vals = []
         moves = []
@@ -197,38 +211,13 @@ class StudentAgent(RandomAgent):
             minimum = int(-(self.dimensions - current_move_number) / 2)
 
             maximum = int((self.dimensions + 1 - current_move_number) / 2)
-
-            #use these three to prevent a loop
-            previous_min = minimum
-            previous_max = maximum
-            previous_med = minimum
             next_node = board.next_state(self.id, move[1])
             moves.append(move)
 
-            #iterative deepening of the alpha/beta limits to prune alot of moves,
-            #using a null depth window.
-            while minimum < maximum:
-                medium = int(minimum + (maximum - minimum) / 2)
-                if(minimum / 2) < medium <= 0:
-                    medium = minimum / 2
-                elif(maximum / 2) > medium >= 0:
-                    medium = maximum / 2
-                result = -int(self.negamax(next_node, medium, medium + 1, current_move_number))
-                if result <= medium:
-                    maximum = result
-
-                else:
-                    minimum = result
-                if previous_min == minimum and previous_max == maximum and previous_med == medium:
-                    break
-                previous_min = minimum
-                previous_max = maximum
-                previous_med = medium
-
-
+            value = int(self.negamax(next_node, minimum, maximum, current_move_number))
             if self.debug:
-                print("column number: %d, calculated value: %d" % (move[1]+1, minimum))
-            vals.append(minimum)
+                print("column number: %d, calculated value: %d" % (move[1], value))
+            vals.append(value)
 
 
         #check if there is at least 1 valid move that won't cause us to lose.
@@ -242,7 +231,8 @@ class StudentAgent(RandomAgent):
         next_node = board.next_state(self.id, best_move[1])
 
         end = time.time()
-        print("Took %r seconds to make this move." % (end - start))
+        if self.debug:
+            print("Took %r seconds to make this move." % (end - start))
 
         if self.debug:
             print("Placed a piece in (%d, %d)" % (best_move[0], best_move[1]))
@@ -277,28 +267,28 @@ class StudentAgent(RandomAgent):
         winner_num = board.winner()
         if winner_num != 0:
             if winner_num == self.id:
-                return sign * -int((self.dimensions - num_moves) / 2)
-            return sign * int((self.dimensions - num_moves) / 2)
+                return  sign * int((self.dimensions - num_moves) / 2)
+            return sign * -int((self.dimensions - num_moves) / 2)
+
+        # no valid moves that won't cause a loss, aka dead end
+        sum_of_moves = count_non_losing_moves(board, num_moves)
+        if sum_of_moves == 0:
+            return sign * -(self.dimensions - num_moves) / 2
 
         #detect a draw, once 40 tokens are on the board in a 6*7 game and no one has won already,
         #no one can possibly win now.
         if num_moves >= self.dimensions - 2:
             return 0
 
-        # no valid moves that won't cause a loss, aka dead end
-        sum_of_moves = count_non_losing_moves(board, num_moves)
-        if sum_of_moves == 0:
-            return sign * (self.dimensions - num_moves) / 2
-
         # set alpha to the minimum possible value
-        minimum = int(-(self.dimensions - num_moves) / 2)
+        minimum = int(-(self.dimensions - 2 - num_moves) / 2)
         if alpha < minimum:
             alpha = minimum
             if alpha >= beta:
                 return alpha #prune children.
 
         # set beta to the maximum possible value
-        maximum = int((self.dimensions - num_moves) / 2)
+        maximum = int((self.dimensions - 1 - num_moves) / 2)
         if beta > maximum:
             beta = maximum
             if alpha >= beta:
@@ -306,18 +296,11 @@ class StudentAgent(RandomAgent):
 
         trans_value = self.transpos_table.get(str(board.board))
         if trans_value:
-            if trans_value > (self.max_score - self.min_score + 1):
-                minimum = trans_value + 2 * self.min_score - self.max_score - 2
-                if alpha < minimum:
-                    alpha = minimum
-                    if alpha >= beta:
-                        return alpha # prune branch
-            else:
-                maximum = trans_value + self.min_score - 1
-                if beta > maximum:
-                    beta = maximum
-                    if alpha >= beta:
-                        return beta #prune branch
+            if trans_value <= alpha:
+                return alpha
+            if trans_value >= beta:
+                return beta
+            return trans_value
 
         if depth == self.max_depth:
             max_depthvalue = self.evaluate_board_state(board, num_moves)
@@ -328,10 +311,8 @@ class StudentAgent(RandomAgent):
             return max_depthvalue
 
 
-        valid_moves = valid_moves_wrapper(board)
+        valid_moves = valid_non_losing_moves(board, num_moves)
 
-        #set the value to the minimum possible
-        value = minimum
         for move in valid_moves:
             next_node = board.next_state(get_current_player(num_moves+1), move[1])
             # recursively go through the children of this node.
@@ -339,23 +320,17 @@ class StudentAgent(RandomAgent):
 
 
 
-            #if the child node is the biggest so far, replace the previous biggest
-            if result > value:
-                value = result
+            if result >= beta:
+                #self.transpos_table[str(next_node.board)] = result
+                return result
 
             # if the result is bigger than the current minimum, set the minimum to the new result
             if result > alpha:
                 alpha = result
 
-            if alpha >= beta:
-                value_to_save = result + self.max_score - 2 * self.min_score + 2
-                self.transpos_table[str(next_node.board)] = value_to_save
-                #don't bother searching the remainder of the moves as this will be the best one
-                break
-
-        #pass up the value we found
-        self.transpos_table[str(next_node.board)] = value - self.min_score + 1
-        return value
+        #save upper bound
+        #self.transpos_table[str(next_node.board)] = alpha
+        return alpha
 
 
 

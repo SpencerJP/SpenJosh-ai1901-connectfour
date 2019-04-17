@@ -27,7 +27,6 @@ boards = [("0000000"
             "0010000"
             "0020000"
             "0010000"),
-
             ("0022212"
              "0011121"
              "0022212" #expected (2,1), current turn is 1 https://i.imgur.com/y2Kpq0C.png  left column = -3 right column = 0
