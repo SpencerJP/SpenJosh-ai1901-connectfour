@@ -136,7 +136,7 @@ class StudentAgent(RandomAgent):
         self.id = -1
         self.dimensions = -1
         self.enemy_id = -1
-        self.debug = True
+        self.debug = False
         self.transpos_table = {}
         self.middle_col = -1
         self.max_score = -1
@@ -167,10 +167,8 @@ class StudentAgent(RandomAgent):
         if current_move_number == 0:
             #hardcoded first move because there is no point calculating anything.
             return ((board.height-1), self.middle_col)
-        if current_move_number < 3:
-            self.max_depth = 3
         if current_move_number < 6:
-            self.max_depth = 4
+            self.max_depth = 5
         if current_move_number < 15:
             self.max_depth = 6
         if current_move_number < 23:

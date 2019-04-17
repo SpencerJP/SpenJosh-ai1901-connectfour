@@ -1,3 +1,3 @@
 @ECHO OFF
-pipenv run python -m connectfour.game --player-one StudentAgent --player-two JoshAgent --fast
+pipenv run python -m connectfour.game --player-one JoshAgent --player-two StudentAgent --fast
 PAUSE
