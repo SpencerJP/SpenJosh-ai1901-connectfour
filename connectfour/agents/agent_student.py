@@ -136,7 +136,7 @@ class StudentAgent(RandomAgent):
         self.id = -1
         self.dimensions = -1
         self.enemy_id = -1
-        self.debug = False
+        self.debug = True
         self.transpos_table = {}
         self.middle_col = -1
         self.max_score = -1
@@ -168,15 +168,14 @@ class StudentAgent(RandomAgent):
             #hardcoded first move because there is no point calculating anything.
             return ((board.height-1), self.middle_col)
         if current_move_number < 6:
-            self.max_depth = 5
-        if current_move_number < 15:
-            self.max_depth = 6
-        if current_move_number < 23:
+            self.max_depth = 4
+        elif current_move_number < 15:
+            self.max_depth = 7
+        elif current_move_number < 23:
             self.max_depth = 8
-        if current_move_number > 30:
+        elif current_move_number > 30:
             self.max_depth = 10
-        else:
-            self.max_depth = min([int(math.sqrt(current_move_number)) + 1, 5])
+            #self.max_depth = min([int(math.sqrt(current_move_number)) + 1, 5])
 
         #check which player this agent is going to be and set it (as in id, will be either 1 or 2)
         if self.id == -1:
@@ -207,6 +206,7 @@ class StudentAgent(RandomAgent):
             #using a null depth window.
             while minimum < maximum:
                 medium = int(minimum + (maximum - minimum) / 2)
+                #print("minimum: %d, maximum: %d, medium: %d" % (minimum, maximum, medium))
                 if(minimum / 2) < medium <= 0:
                     medium = minimum / 2
                 elif(maximum / 2) > medium >= 0:
