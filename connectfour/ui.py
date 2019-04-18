@@ -10,6 +10,17 @@ from tkinter import Frame, Canvas, Tk, Label, NSEW, Button
 import time
 import cProfile
 
+def debug_print_board(board, score=None):
+    """Prints out the board argument into the terminal, followed by a newline."""
+    string = ""
+    for row in board.board:
+        for cell in row:
+            string += str(cell)
+        string += str("\n")
+    if score:
+        string += str("\nScore: " + str(score))
+    print(string)
+
 LEFT_MOUSE_CLICK = "<Button-1>"
 ROW_SPACE = int(400 / 6)
 COL_SPACE = int(500 / 7)
@@ -209,10 +220,13 @@ def run_headless_game(game):
 
         game.board.board[row][col] = game.current_player.id
 
+
         result = game.board.winner()
         if result or game.board.terminal():
             return run_exit(game, result), turn_count
 
+
+        debug_print_board(game.board)
         game.change_turn()
         time_sum += (turn_time_end - turn_time_start)
         turn_count += 1
