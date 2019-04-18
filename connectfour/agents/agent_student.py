@@ -1,6 +1,5 @@
 """Spencer and Josh's agent for playing Connect 4."""
 import time
-import copy
 from connectfour.board import Board
 from connectfour.agents.computer_player import RandomAgent
 
@@ -35,23 +34,6 @@ def count_moves(board):
                 sum_of_moves += 1
 
     return sum_of_moves
-
-
-
-def convertStringToBoard(s, boardclass):
-    row = 0
-    col = 0
-    string = ""
-    for character in s:
-        if(col == 7):
-            row = row + 1
-            col = 0
-            boardclass.board[row][col] = int(character)
-            col = col + 1
-        else:
-            boardclass.board[row][col] = int(character)
-            col = col + 1
-
 
 def valid_moves_wrapper(board):
     """Wrap the board.valid_moves() generator in our own organiser that
