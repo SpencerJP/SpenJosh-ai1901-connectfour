@@ -3,7 +3,20 @@ from connectfour.board import Board
 
 import time
 
+# boards = [("0000000"
+#             "0000000"
+#             "0000000" #(5,4), 1's turn https://i.imgur.com/IXoqPJq.png
+#             "0000000"
+#             "0002000"
+#             "0011000")]
+
 boards = [("0000000"
+            "0000000"
+            "0000000" #(5,4), 1's turn https://i.imgur.com/IXoqPJq.png
+            "0000000"
+            "0002000"
+            "0011000"),
+            ("0000000"
               "0000000"
               "0000000" #(2,2), 1's turn https://i.imgur.com/IXoqPJq.png
               "0010000"
@@ -46,10 +59,9 @@ boards = [("0000000"
               "1112211"
               "2221122")]
 
+expected_values = [(5,4), (2,2), (2,2), "?", (2,2), (2,1), (1,1), (1,0) ]
 
-expected_values = [(2,2), (2,2), "?", (2,2), (2,1), (1,1), (1,0)]
-
-# expected_values = [(2, 2)]
+# expected_values = [(5, 4)]
 
 
 def debug_print_board(boardclass):
@@ -78,20 +90,19 @@ def main():
     gameboard = Board(height=6,width=7)
     i = 0
     for position in boards:
-            convertStringToBoard(position, gameboard)
-            agent = StudentAgent(str(i))
-            agent.debug = True
-            result = agent.get_move(gameboard)
-            if result==None:
-                print("your test is flawed as there is already a winner somewhere on the board.")
-
+        convertStringToBoard(position, gameboard)
+        agent = StudentAgent(str(i))
+        agent.debug = True
+        result = agent.get_move(gameboard)
+        if result is None:
+            print("your test is flawed as there is already a winner somewhere on the board.")
+        else:
+            print("Position no: %d, Result Move: (%d, %d)" % (i, result[0], result[1]))
+            if (expected_values[i] == "?" or expected_values[i] == result):
+                print("Success!")
             else:
-                print("Position no: %d, Result Move: (%d, %d)" % (i, result[0], result[1]))
-                if (expected_values[i] == "?" or expected_values[i] == result):
-                    print("Success!")
-                else:
-                    print("Failure")
-            i = i + 1
+                print("Failure")
+        i = i + 1
 
 
 main()
