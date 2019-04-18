@@ -205,12 +205,12 @@ class StudentAgent(RandomAgent):
             self.max_depth = 1
         elif current_move_number < 8:
             self.max_depth = 3
-        elif current_move_number < 18:
+        elif current_move_number < 15:
             self.max_depth = 4
-        elif current_move_number < 25:
+        elif current_move_number < 20:
             self.max_depth = 7
         elif current_move_number > 30:
-            self.max_depth = 10
+            self.max_depth = self.dimensions # max
             # self.max_depth = min([int(math.sqrt(current_move_number)) + 1, 5])
 
         #check which player this agent is going to be and set it (as in id, will be either 1 or 2)
