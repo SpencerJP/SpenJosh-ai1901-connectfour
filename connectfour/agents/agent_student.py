@@ -5,8 +5,9 @@ import numpy as np
 class StudentAgent(RandomAgent):
     def __init__(self, name):
         super().__init__(name)
-        self.MaxDepth = 5
-
+        self.MaxDepth = 4
+        # Compensation for if StudentAgent is player 1(=1) or 2(=-1)
+        self.player_id_compensation = 1 if int(name[-1]) == 1 else -1
 
     def get_move(self, board):
         """
@@ -89,11 +90,17 @@ class StudentAgent(RandomAgent):
             winner()
         """
         if board.winner() == 1:
-            return 10000
+            return self.player_id_compensation * 10000
         elif board.winner() == 2:
-            return -10000
+            return self.player_id_compensation * -10000
         npboard = np.array(board.board)
-        return vertical_threat(npboard) + horizontal_threat(npboard) + diagonal_threat(npboard) + central_heuristic(board)/10
+        return self.player_id_compensation*(
+            (
+                vertical_threat(npboard) + horizontal_threat(npboard) 
+                + diagonal_threat(npboard)
+             )**2
+            + central_heuristic(board)/10
+        )
 
 
 def vertical_threat(board_array):
