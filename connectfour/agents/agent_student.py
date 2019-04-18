@@ -203,13 +203,13 @@ class StudentAgent(RandomAgent):
             return ((board.height-1), self.middle_col)
         if current_move_number == 1:
             self.max_depth = 1
-        elif current_move_number < 8:
+        elif current_move_number < 10:
             self.max_depth = 3
         elif current_move_number < 15:
             self.max_depth = 4
         elif current_move_number < 20:
-            self.max_depth = 7
-        elif current_move_number > 30:
+            self.max_depth = 6
+        elif current_move_number > 23:
             self.max_depth = self.dimensions # max
             # self.max_depth = min([int(math.sqrt(current_move_number)) + 1, 5])
 
