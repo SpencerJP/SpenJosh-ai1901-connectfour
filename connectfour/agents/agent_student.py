@@ -55,7 +55,7 @@ def convertStringToBoard(s, boardclass):
 
 def valid_moves_wrapper(board):
     """Wrap the board.valid_moves() generator in our own organiser that
-    orders the moves centre to outside, going left first if it is uneven."""
+    orders the moves centre to outside, going right first if it is uneven."""
 
     #this optimisation is specific to 6*7 boards, if it isn't 7 wide then abort.
     if board.width != 7:
@@ -151,7 +151,10 @@ def count_non_losing_moves(board, num_moves):
 def next_state_fast(board, player_id, move):
     """My monkey patching method to avoid using deepcopy"""
     next_board = Board(width=7, height=6, last_move=move)
-    next_board.board = copy.deepcopy(board.board)
+    next_board.board = [x[:] for x in [[0] * 7] * 6] # superfast way to declare 2d array
+    for i in range(board.height):
+        for j in range(board.width):
+            next_board.board[i][j] = board.board[i][j]
     next_board.board[move[0]][move[1]] = player_id
     next_board.next_state_fast = next_state_fast
     next_board.winning_zones = board.winning_zones
@@ -166,7 +169,7 @@ class StudentAgent(RandomAgent):
         self.id = -1
         self.dimensions = -1
         self.enemy_id = -1
-        self.debug = True
+        self.debug = False
         self.transpos_table = {}
         self.middle_col = -1
         self.max_score = -1
