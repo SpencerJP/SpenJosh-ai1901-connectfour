@@ -21,6 +21,16 @@ def debug_print_board(board, score=None):
         string += str("\nScore: " + str(score))
     print(string)
 
+def count_moves(board):
+    """counts the amount of tokens that have been inserted into the board."""
+    sum_of_moves = 0
+    for i in range(board.height):
+        for j in range(board.width):
+            if board.board[i][j] != 0:
+                sum_of_moves += 1
+
+    return sum_of_moves
+
 LEFT_MOUSE_CLICK = "<Button-1>"
 ROW_SPACE = int(400 / 6)
 COL_SPACE = int(500 / 7)
@@ -179,14 +189,19 @@ class Terrain(Canvas):
 
 def game_loop(root, game, terrain):
     def inner():
+        turn_count = count_moves(game.board)
         # If current player is a Human Player, we just keep waiting for a
         # UI event to trigger the move
         if type(game.current_player) is not HumanPlayer:
+            turn_time_start = time.time()
             terrain.run_computer_move()
+            turn_time_end = time.time()
+            print("Turn # %d, %r's turn - took %r" % (turn_count, game.current_player, (turn_time_end - turn_time_start)) )
             game.change_turn()
             terrain.set_post_move_state()
             terrain.reload_board()
             terrain.update()
+            debug_print_board(game.board)
 
         if not terrain.winner and not terrain.b.terminal():
             root.after(100, inner)
