@@ -1,6 +1,6 @@
 """Spencer and Josh's agent for playing Connect 4."""
 import time
-import copy
+import numpy as np
 from connectfour.board import Board
 from connectfour.agents.computer_player import RandomAgent
 
@@ -382,10 +382,8 @@ class StudentAgent(RandomAgent):
         As an example, the random agent provided works as follows:
             If the opponent has won this game, return -1.
             If we have won the game, return 1.
-            If neither of the players has won, return a random number.
-        """
 
-        """
+        If neither of the players has won, return a random number.
         These are the variables and functions for board objects
          which may be helpful when creating your Agent.
         Look into board.py for more information/descriptions of each,
@@ -410,12 +408,94 @@ class StudentAgent(RandomAgent):
             next_state(turn)
             winner()
         """
+        npboard = np.array(board.board)
+        return (
+            (
+                vertical_threat(npboard) + horizontal_threat(npboard)
+                + diagonal_threat(npboard))**2
+            + central_heuristic(board)/10
+        )
 
-        score_sum = []
-        for row in board.board:
-            for col in range(board.width):
-                if row[col] == get_current_player(num_moves):
-                    score_sum.append(self.middle_col-abs(self.middle_col-col))
 
-        score = sum(score_sum)
-        return score
+def vertical_threat(board_array):
+    """Function to determine how many vertical threats exist
+    returns score for how many more threats player1 has over player2
+    """
+    h, w = board_array.shape
+    score = 0
+
+    mask = np.array([0, 1, 1, 1])
+
+    for c in range(w):
+        for r in range(h-3):
+            if (board_array[r:r+4, c] == mask).all():
+                score += 1
+            elif (board_array[r:r+4, c] == 2*mask).all():
+                score -= 1
+    return score
+
+
+def horizontal_threat(board_array):
+    """Function to determine how many horizontal threats exist
+    returns score for how many more threats player1 has over player2
+    """
+    h, w = board_array.shape
+    score = 0
+
+    masks = [np.array([1,1,1,0]),
+             np.array([1,1,0,1]),
+             np.array([1,0,1,1]),
+             np.array([0,1,1,1])]
+
+
+    for c in range(w-3):
+        for r in range(h):
+            board_slice = board_array[r, c:c+4]
+            for mask in masks:
+                if (board_slice == mask).all():
+                    score += 1
+                elif (board_slice == 2*mask).all():
+                    score -= 1
+    return score
+
+
+def diagonal_threat(board_array):
+    """Function to determine how many diagonal threats exist
+    returns score for how many more threats player1 has over player2
+    """
+    h, w = board_array.shape
+    score = 0
+
+    masks = [np.array([1,1,1,0]),
+             np.array([1,1,0,1]),
+             np.array([1,0,1,1]),
+             np.array([0,1,1,1])]
+
+    for c in range(w-3):
+        for r in range(h-3):
+            board_slices = [board_array[r:r+4, c:c+4].diagonal(),
+                            np.fliplr(board_array[r:r+4, c:c+4]).diagonal()]
+            for board_slice in board_slices:
+                for mask in masks:
+                    if (board_slice == mask).all():
+                        score += 1
+                    elif (board_slice == 2*mask).all():
+                        score -= 1
+    return score
+
+
+def central_heuristic(board):
+    """Simple heuristic to favour boards that have more central tokens
+    Returns the sum of the tokens multiplied by their distance from edge of board
+    outer column = 0, middle column = 3 for a 7 column board
+    """
+    middle_score = 0
+    middle_col = round((board.width+1)/2)-1
+    for row in board.board:
+        for col in range(board.width):
+            score = middle_col-abs(middle_col-col)
+            if row[col] == 1:
+                middle_score += score
+            elif row[col] == 2:
+                middle_score -= score
+    return middle_score
