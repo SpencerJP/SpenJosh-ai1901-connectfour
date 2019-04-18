@@ -1,8 +1,8 @@
 """Spencer and Josh's agent for playing Connect 4."""
 import time
-import copy
 import numpy as np
-from connectfour.board import Boardfrom connectfour.agents.computer_player import RandomAgent
+from connectfour.board import Board
+from connectfour.agents.computer_player import RandomAgent
 
 
 PLAYER_ONE_ID = 1
@@ -409,7 +409,7 @@ class StudentAgent(RandomAgent):
             winner()
         """
         npboard = np.array(board.board)
-        return self.player_id_compensation*(
+        return (
             (
                 vertical_threat(npboard) + horizontal_threat(npboard)
                 + diagonal_threat(npboard))**2
