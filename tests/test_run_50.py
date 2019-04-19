@@ -31,8 +31,8 @@ def test_randomagent(games=30):
             print("Game %d" % i)
             game_time_start = time.time()
             g = Game(
-                StudentAgent("StudentAgent"),
-                RandomAgent("RandomAgent"),
+                StudentAgent("StudentAgent 1"),
+                RandomAgent("RandomAgent 2"),
                 6,
                 7,
                 True,
@@ -52,8 +52,8 @@ def test_randomagent(games=30):
             print("Game %d" % i)
             game_time_start = time.time()
             g = Game(
-                RandomAgent("RandomAgent"),
-                StudentAgent("StudentAgent"),
+                RandomAgent("RandomAgent 1 "),
+                StudentAgent("StudentAgent 2"),
                 6,
                 7,
                 True,
@@ -81,8 +81,8 @@ def test_montecarlo(games=30):
             print("Game %d" % i)
             game_time_start = time.time()
             g = Game(
-                StudentAgent("StudentAgent"),
-                MonteCarloAgent("MonteCarloAgent"),
+                StudentAgent("StudentAgent 1"),
+                MonteCarloAgent("MonteCarloAgent 2"),
                 6,
                 7,
                 True,
@@ -130,8 +130,8 @@ def test_joshagent(games=30):
             print("Game %d" % i)
             game_time_start = time.time()
             g = Game(
-                StudentAgent("StudentAgent"),
-                JoshAgent("HeuristicAgent"),
+                StudentAgent("StudentAgent 1"),
+                JoshAgent("HeuristicAgent 2"),
                 6,
                 7,
                 True,
@@ -151,8 +151,8 @@ def test_joshagent(games=30):
             print("Game %d" % i)
             game_time_start = time.time()
             g = Game(
-                JoshAgent("HeuristicAgent"),
-                StudentAgent("StudentAgent"),
+                JoshAgent("HeuristicAgent 1"),
+                StudentAgent("StudentAgent 2"),
                 6,
                 7,
                 True,
