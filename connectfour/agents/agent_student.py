@@ -102,17 +102,17 @@ def vertical_threat(board_array):
     """Function to find vertical threats for each player
     """
     h, w = board_array.shape
-    p1_threats = []
-    p2_threats = []
+    p1_threats = set()
+    p2_threats = set()
 
     mask = np.array([0, 1, 1, 1])
 
     for c in range(w):
         for r in range(h-3):
             if (board_array[r:r+4, c] == mask).all():
-                p1_threats.append((r, c))
+                p1_threats.add((r, c))
             elif (board_array[r:r+4, c] == 2*mask).all():
-                p2_threats.append((r, c))
+                p2_threats.add((r, c))
     return p1_threats, p2_threats
 
 
@@ -120,8 +120,8 @@ def horizontal_threat(board_array):
     """Function to find horizontal threats for each player
     """
     h, w = board_array.shape
-    p1_threats = []
-    p2_threats = []
+    p1_threats = set()
+    p2_threats = set()
     masks = [np.array([0,1,1,1]),
              np.array([1,0,1,1]),
              np.array([1,1,0,1]),
@@ -133,9 +133,9 @@ def horizontal_threat(board_array):
             board_slice = board_array[r, c:c+4]
             for index, mask in enumerate(masks):
                 if (board_slice == mask).all():
-                    p1_threats.append((r, c+index))
+                    p1_threats.add((r, c+index))
                 elif (board_slice == 2*mask).all():
-                    p2_threats.append((r, c+index))
+                    p2_threats.add((r, c+index))
     return p1_threats, p2_threats
 
 
@@ -143,8 +143,8 @@ def diagonal_threat(board_array):
     """Function to find diagonal_threats for each player
     """
     h, w = board_array.shape
-    p1_threats = []
-    p2_threats = []
+    p1_threats = set()
+    p2_threats = set()
 
     masks = [np.array([0,1,1,1]),
              np.array([1,0,1,1]),
@@ -159,14 +159,14 @@ def diagonal_threat(board_array):
                 for index, mask in enumerate(masks):
                     if (board_slice == mask).all():
                         if positive_slope:
-                            p1_threats.append((r+index, c+(3-index)))
+                            p1_threats.add((r+index, c+(3-index)))
                         else:
-                            p1_threats.append((r+index, c+index))
+                            p1_threats.add((r+index, c+index))
                     elif (board_slice == 2*mask).all():
                         if positive_slope:
-                            p2_threats.append((r+index, c+(3-index)))
+                            p2_threats.add((r+index, c+(3-index)))
                         else:
-                            p2_threats.append((r+index, c+index))
+                            p2_threats.add((r+index, c+index))
     return p1_threats, p2_threats
 
 
