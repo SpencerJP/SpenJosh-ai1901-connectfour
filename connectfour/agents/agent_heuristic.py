@@ -6,7 +6,7 @@ class JoshAgent(RandomAgent):
         super().__init__(name)
         self.MaxDepth = 4
         # Conpensation for if StudentAgent is player 1(=1) or 2(=-1)
-        self.player_id_compensation = 0
+        self.player_id_compensation = 1 if int(name[-1]) == 1 else -1
 
     def get_move(self, board):
         """
