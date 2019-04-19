@@ -140,28 +140,34 @@ def horizontal_threat(board_array):
 
 
 def diagonal_threat(board_array):
-    """Function to determine how many diagonal threats exist
-    returns score for how many more threats player1 has over player2
+    """Function to find diagonal_threats for each player
     """
     h, w = board_array.shape
-    score = 0
+    p1_threats = []
+    p2_threats = []
 
-    masks = [np.array([1,1,1,0]),
-             np.array([1,1,0,1]),
+    masks = [np.array([0,1,1,1]),
              np.array([1,0,1,1]),
-             np.array([0,1,1,1])]
+             np.array([1,1,0,1]),
+             np.array([1,1,1,0])]
 
     for c in range(w-3):
         for r in range(h-3):
             board_slices = [board_array[r:r+4, c:c+4].diagonal(),
                             np.fliplr(board_array[r:r+4, c:c+4]).diagonal()]
-            for board_slice in board_slices:
-                for mask in masks:
+            for positive_slope, board_slice in enumerate(board_slices):
+                for index, mask in enumerate(masks):
                     if (board_slice == mask).all():
-                        score += 1
+                        if positive_slope:
+                            p1_threats.append((r+index, c+(3-index)))
+                        else:
+                            p1_threats.append((r+index, c+index))
                     elif (board_slice == 2*mask).all():
-                        score -= 1
-    return score
+                        if positive_slope:
+                            p2_threats.append((r+index, c+(3-index)))
+                        else:
+                            p2_threats.append((r+index, c+index))
+    return p1_threats, p2_threats
 
 
 def central_heuristic(board):
