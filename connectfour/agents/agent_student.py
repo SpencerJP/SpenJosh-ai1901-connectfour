@@ -37,22 +37,6 @@ def count_moves(board):
     return sum_of_moves
 
 
-
-def convertStringToBoard(s, boardclass):
-    row = 0
-    col = 0
-    string = ""
-    for character in s:
-        if(col == 7):
-            row = row + 1
-            col = 0
-            boardclass.board[row][col] = int(character)
-            col = col + 1
-        else:
-            boardclass.board[row][col] = int(character)
-            col = col + 1
-
-
 def valid_moves_wrapper(board):
     """Wrap the board.valid_moves() generator in our own organiser that
     orders the moves centre to outside, going right first if it is uneven."""
@@ -320,7 +304,7 @@ class StudentAgent(RandomAgent):
             return sign * int((self.dimensions - num_moves) / 2)
 
         if depth == self.max_depth:
-            return sign * self.evaluate_board_state(board, num_moves)
+            return sign * self.evaluate_board_state(board)
 
         #detect a draw, once 40 tokens are on the board in a 6*7 game and no one has won already,
         #no one can possibly win now.
@@ -375,7 +359,7 @@ class StudentAgent(RandomAgent):
                 break
         return value
 
-    def evaluate_board_state(self, board, num_moves):
+    def evaluate_board_state(self, board):
 
         """
         Your evaluation function should look at the current state and return a score for it.
