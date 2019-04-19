@@ -1,18 +1,17 @@
-from connectfour.agents.computer_player import RandomAgent
-import random
 import numpy as np
+from connectfour.agents.computer_player import RandomAgent
 
 class JoshAgent(RandomAgent):
     def __init__(self, name):
         super().__init__(name)
-        self.MaxDepth = 5
-
+        self.MaxDepth = 4
+        # Conpensation for if StudentAgent is player 1(=1) or 2(=-1)
+        self.player_id_compensation = 0
 
     def get_move(self, board):
         """
         Args:
             board: An instance of `Board` that is the current state of the board.
-
         Returns:
             A tuple of two integers, (row, col)
         """
@@ -23,15 +22,14 @@ class JoshAgent(RandomAgent):
 
         for move in valid_moves:
             next_state = board.next_state(self.id, move[1])
-            moves.append( move )
-            vals.append( self.dfMiniMax(next_state, 1) )
+            moves.append(move)
+            vals.append(self.dfMiniMax(next_state, 1))
 
-        bestMove = moves[vals.index( max(vals) )]
+        bestMove = moves[vals.index(max(vals))]
         return bestMove
 
     def dfMiniMax(self, board, depth):
         # Goal return column with maximized scores of all possible next states
-
         if depth == self.MaxDepth:
             return self.evaluateBoardState(board)
 
@@ -45,8 +43,8 @@ class JoshAgent(RandomAgent):
             else:
                 next_state = board.next_state(self.id, move[1])
 
-            moves.append( move )
-            vals.append( self.dfMiniMax(next_state, depth + 1) )
+            moves.append(move)
+            vals.append(self.dfMiniMax(next_state, depth + 1))
 
 
         if depth % 2 == 1:
@@ -64,11 +62,8 @@ class JoshAgent(RandomAgent):
             If we have won the game, return 1.
             If neither of the players has won, return a random number.
         """
-
         """
-        These are the variables and functions for board objects which may be helpful when creating your Agent.
-        Look into board.py for more information/descriptions of each, or to look for any other definitions which may help you.
-
+        These are the variables and functions for board objects
         Board Variables:
             board.width
             board.height
@@ -77,7 +72,6 @@ class JoshAgent(RandomAgent):
             board.winning_zones
             board.score_array
             board.current_player_score
-
         Board Functions:
             get_cell_value(row, col)
             try_move(col)
@@ -89,11 +83,16 @@ class JoshAgent(RandomAgent):
             winner()
         """
         if board.winner() == 1:
-            return 10000
-        elif board.winner() == 2:
-            return -10000
+            return self.player_id_compensation * 10000
+        if board.winner() == 2:
+            return self.player_id_compensation * -10000
         npboard = np.array(board.board)
-        return vertical_threat(npboard) + horizontal_threat(npboard) + diagonal_threat(npboard) + central_heuristic(board)/10
+        return self.player_id_compensation*(
+            (
+                vertical_threat(npboard) + horizontal_threat(npboard)
+                + diagonal_threat(npboard))**2
+            + central_heuristic(board)/10
+        )
 
 
 def vertical_threat(board_array):
@@ -153,7 +152,7 @@ def diagonal_threat(board_array):
     for c in range(w-3):
         for r in range(h-3):
             board_slices = [board_array[r:r+4, c:c+4].diagonal(),
-                           np.fliplr(board_array[r:r+4, c:c+4]).diagonal()]
+                            np.fliplr(board_array[r:r+4, c:c+4]).diagonal()]
             for board_slice in board_slices:
                 for mask in masks:
                     if (board_slice == mask).all():
