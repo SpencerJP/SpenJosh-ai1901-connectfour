@@ -208,8 +208,8 @@ class StudentAgent(RandomAgent):
         elif current_move_number < 15:
             self.max_depth = 4
         elif current_move_number < 20:
-            self.max_depth = 6
-        elif current_move_number > 23:
+            self.max_depth = 5
+        elif current_move_number > 26:
             self.max_depth = self.dimensions # max
             # self.max_depth = min([int(math.sqrt(current_move_number)) + 1, 5])
 
