@@ -131,17 +131,23 @@ def count_non_losing_moves(board, num_moves):
             sum_of_moves += 1
     return sum_of_moves
 
+class Empty(object):
+    """hack to avoid _build_winning_zones_map in the board class code"""
+    pass
 
 def next_state_fast(board, player_id, move):
     """My monkey patching method to avoid using deepcopy"""
-    next_board = Board(width=7, height=6, last_move=move)
+    next_board = Empty()
+    next_board.__class__ = Board #this hack skips the constructor in the board class
+    next_board.width = 7
+    next_board.height = 6
+    next_board.num_to_connect = 4
     next_board.board = [x[:] for x in [[0] * 7] * 6] # superfast way to declare 2d array
     for i in range(board.height):
         for j in range(board.width):
             next_board.board[i][j] = board.board[i][j]
     next_board.board[move[0]][move[1]] = player_id
     next_board.next_state_fast = next_state_fast
-    next_board.winning_zones = board.winning_zones
     return next_board
 
  # pylint: disable=too-many-instance-attributes
