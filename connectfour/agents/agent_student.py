@@ -99,21 +99,21 @@ class StudentAgent(RandomAgent):
 
 
 def vertical_threat(board_array):
-    """Function to determine how many vertical threats exist
-    returns score for how many more threats player1 has over player2
+    """Function to find vertical threats for each player
     """
     h, w = board_array.shape
-    score = 0
+    p1_threats = []
+    p2_threats = []
 
     mask = np.array([0, 1, 1, 1])
 
     for c in range(w):
         for r in range(h-3):
             if (board_array[r:r+4, c] == mask).all():
-                score += 1
+                p1_threats.append((r, c))
             elif (board_array[r:r+4, c] == 2*mask).all():
-                score -= 1
-    return score
+                p2_threats.append((r, c))
+    return p1_threats, p2_threats
 
 
 def horizontal_threat(board_array):
