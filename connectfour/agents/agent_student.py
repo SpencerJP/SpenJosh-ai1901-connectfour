@@ -59,6 +59,7 @@ def valid_moves_wrapper(board):
 
 
 def valid_non_losing_moves(board, num_moves):
+    # pylint: disable=E1101
     """
     returns: a generator of moves that don't cause a loss the turn after
 
@@ -93,6 +94,7 @@ def valid_non_losing_moves(board, num_moves):
             yield move
 
 def count_non_losing_moves(board, num_moves):
+     # pylint: disable=E1101
     """
     I made this method because I feel that that the
     count_non_losing_moves() generator method is inappropriate.
@@ -133,12 +135,14 @@ def count_non_losing_moves(board, num_moves):
 
 class Empty(object):
     """hack to avoid _build_winning_zones_map in the board class code"""
-    pass
 
 def next_state_fast(board, player_id, move):
-    """My monkey patching method to avoid using deepcopy"""
+    """My monkey patching method to avoid using deepcopy and _build_winning_zones_map
+    this hack skips the constructor in the board class,
+    hence the pylint suppressor"""
     next_board = Empty()
-    next_board.__class__ = Board #this hack skips the constructor in the board class
+    next_board.__class__ = Board
+    #pylint: disable=W0201
     next_board.width = 7
     next_board.height = 6
     next_board.num_to_connect = 4
@@ -155,7 +159,7 @@ class StudentAgent(RandomAgent):
     """Our agent class."""
     def __init__(self, name):
         super().__init__(name)
-        self.max_depth = 5
+        self.max_depth = -1
         self.id = -1
         self.dimensions = -1
         self.enemy_id = -1
@@ -164,6 +168,17 @@ class StudentAgent(RandomAgent):
         self.middle_col = -1
         self.max_score = -1
         self.min_score = -1
+
+    def set_variable_depth(self, num_moves, possible_branches):
+        """variable depth to make the algorithm less slow, but still produce good results"""
+        if num_moves == 1:
+            self.max_depth = 1
+            return
+        self.max_depth = 3
+        if possible_branches < 7:
+            self.max_depth = self.max_depth + int((7 - possible_branches)/2)
+        if num_moves > 26:
+            self.max_depth = self.dimensions # max
 
     def get_move(self, board):
         """
@@ -179,6 +194,7 @@ class StudentAgent(RandomAgent):
         #check how many moves have occurred so far on this board.
         current_move_number = count_moves(board)
 
+
         #check board size
         if self.dimensions == -1:
             self.dimensions = board.width * board.height
@@ -186,22 +202,13 @@ class StudentAgent(RandomAgent):
             self.max_score = (self.dimensions + 1) / 2 - 3
             self.min_score = -(self.dimensions) / 2 + 3
 
-        #variable depth to make the algorithm less slow
-        #5 is a constant here because anything above that begins to go very slow.
         if current_move_number == 0:
             #hardcoded first move because there is no point calculating anything.
             return ((board.height-1), self.middle_col)
-        if current_move_number == 1:
-            self.max_depth = 1
-        elif current_move_number < 10:
-            self.max_depth = 3
-        elif current_move_number < 15:
-            self.max_depth = 4
-        elif current_move_number < 20:
-            self.max_depth = 5
-        elif current_move_number > 26:
-            self.max_depth = self.dimensions # max
-            # self.max_depth = min([int(math.sqrt(current_move_number)) + 1, 5])
+
+        non_losing_moves_count = count_non_losing_moves(board, current_move_number)
+
+        self.set_variable_depth(current_move_number, non_losing_moves_count)
 
         #check which player this agent is going to be and set it (as in id, will be either 1 or 2)
         if self.id == -1:
@@ -209,7 +216,7 @@ class StudentAgent(RandomAgent):
             self.enemy_id = get_current_player(current_move_number+1)
 
         valid_moves = None
-        non_losing_moves_count = count_non_losing_moves(board, current_move_number)
+
         #we lose, concede
         if non_losing_moves_count == 0:
             valid_moves = valid_moves_wrapper(board)

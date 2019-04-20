@@ -17,8 +17,8 @@ def debug_print_board(boardclass):
     print(string)
 
 def main():
-    #test_randomagent(10)
-    #test_montecarlo(10)
+    test_randomagent(2)
+    test_montecarlo(2)
     test_joshagent(2)
 
 
