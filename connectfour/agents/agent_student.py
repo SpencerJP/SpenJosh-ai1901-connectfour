@@ -185,3 +185,18 @@ def central_heuristic(board):
             elif row[col] == 2:
                 middle_score -= score
     return middle_score
+
+
+def remove_bad_threats(p1_threats, p2_threats):
+    """Function to remove bad threats from the threat sets
+    """
+    for r, c in p1_threats:
+        # Remove any oposition threat 1 position above as it is redundant
+        p2_threats.discard((r-1, c))
+
+    for r, c in p2_threats:
+        # Remove any oposition threat 1 position above as it is redundant
+        p1_threats.discard((r-1, c))
+
+    return p1_threats, p2_threats
+
