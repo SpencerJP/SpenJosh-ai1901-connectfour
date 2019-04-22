@@ -17,8 +17,8 @@ def debug_print_board(boardclass):
     print(string)
 
 def main():
-    test_randomagent(2)
-    test_montecarlo(2)
+    #test_randomagent(2)
+    #test_montecarlo(2)
     test_joshagent(2)
 
 
@@ -47,6 +47,8 @@ def test_randomagent(games=30):
             if(result[0] == 1):
                 winsum += 1
                 print("Win total: %d" % winsum)
+            elif(result[0] == 3):
+                print("Draw!")
             i += 1
         else:
             print("Game %d" % i)
@@ -67,6 +69,8 @@ def test_randomagent(games=30):
             if(result[0] == 2):
                 winsum += 1
                 print("Win total: %d" % winsum)
+            elif(result[0] == 3):
+                    print("Draw!")
             i += 1
         full_time_end = time.time()
         print("Win percentage: %dpercent - Took %d minutes, average turn time was %r seconds" % ( ((winsum/i) * 100), (full_time_end - full_time_start)/60, (full_time_end - full_time_start)/(result[1]/2) ) )
@@ -97,6 +101,8 @@ def test_montecarlo(games=30):
             if(result[0] == 1):
                 winsum += 1
                 print("Win total: %d" % winsum)
+            elif(result[0] == 3):
+                print("Draw!")
             i += 1
         else:
             print("Game %d" % i)
@@ -117,6 +123,8 @@ def test_montecarlo(games=30):
             if(result[0] == 2):
                 winsum += 1
                 print("Win total: %d" % winsum)
+            elif(result[0] == 3):
+                print("Draw!")
             i += 1
         full_time_end = time.time()
         print("Win percentage: %dpercent - Took %d minutes, average turn time was %r seconds" % ( ((winsum/i) * 100), (full_time_end - full_time_start)/60, (full_time_end - full_time_start)/(result[1]/2) ) )
@@ -146,6 +154,8 @@ def test_joshagent(games=30):
             if(result[0] == 1):
                 winsum += 1
                 print("Win total: %d" % winsum)
+            elif(result[0] == 3):
+                print("Draw!")
             i += 1
         else:
             print("Game %d" % i)
@@ -166,6 +176,8 @@ def test_joshagent(games=30):
             if(result[0] == 2):
                 winsum += 1
                 print("Win total: %d" % winsum)
+            elif(result[0] == 3):
+                print("Draw!")
             i += 1
         full_time_end = time.time()
         print("Win percentage: %dpercent - Took %d minutes, average turn time was %r seconds" % ( ((winsum/i) * 100), (full_time_end - full_time_start)/60, (full_time_end - full_time_start)/(result[1]/2) ) )

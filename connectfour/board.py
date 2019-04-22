@@ -49,6 +49,15 @@ class Board(object):
 
         return self.board[row][col]
 
+    def count_moves(self):
+        sum_of_moves = 0
+        for i in range(self.height):
+            for j in range(self.width):
+                if self.board[i][j] != 0:
+                    sum_of_moves += 1
+
+        return sum_of_moves
+
     def try_move(self, move):
         """
         Takes the current board and a possible move specified
@@ -164,6 +173,8 @@ class Board(object):
         diag_winner = self._check_diagonals()
         if diag_winner:
             return diag_winner
+        if self.count_moves() == 42:
+            return 3
         return 0  # no winner yet
 
     def _check_rows(self):

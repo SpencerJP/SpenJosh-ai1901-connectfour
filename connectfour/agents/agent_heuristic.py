@@ -12,7 +12,7 @@ def count_moves(board):
     return sum_of_moves
 
 
-class StudentAgent(RandomAgent):
+class JoshAgent(RandomAgent):
     def __init__(self, name):
         super().__init__(name)
         self.MaxDepth = 3
@@ -32,7 +32,7 @@ class StudentAgent(RandomAgent):
             self.MaxDepth += 1
         if (no_moves-1)%10 == 0 and self.player_id_compensation == -1:
             self.MaxDepth += 1
-        print(no_moves, self.MaxDepth)
+        #print(no_moves, self.MaxDepth)
         valid_moves = board.valid_moves()
         vals = []
         moves = []
@@ -72,10 +72,12 @@ class StudentAgent(RandomAgent):
             vals.append(self.dfMiniMax(next_state, depth + 1))
 
 
-        if depth % 2 == 1:
+        if depth % 2 == 1 and vals:
             bestVal = min(vals)
-        else:
+        elif vals:
             bestVal = max(vals)
+        else:
+            return 0
 
         return bestVal
 

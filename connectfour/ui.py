@@ -213,13 +213,7 @@ def game_loop(root, game, terrain):
 
 
 def run_exit(game, result):
-    output = {}
-    if not result:
-        output["end_state"] = "draw"
-        output["winner_id"] = None
-    else:
-        return result
-    return -1
+    return result
 
 
 def run_headless_game(game):

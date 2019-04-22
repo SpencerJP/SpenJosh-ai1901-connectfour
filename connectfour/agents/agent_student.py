@@ -176,8 +176,10 @@ class StudentAgent(RandomAgent):
             return
         self.max_depth = 3
         if possible_branches < 7:
-            self.max_depth = self.max_depth + int((7 - possible_branches)/2)
-        if num_moves > 26:
+            self.max_depth = self.max_depth + int(7 - possible_branches)
+        if num_moves > 20:
+            self.max_depth = 8
+        if num_moves > 24:
             self.max_depth = self.dimensions # max
 
     def get_move(self, board):
@@ -267,13 +269,13 @@ class StudentAgent(RandomAgent):
             valid_moves = board.valid_moves()
             best_move = next(valid_moves)
 
-        next_node = next_state_fast(board, self.id, best_move)
 
         end = time.time()
         if self.debug:
             print("Took %r seconds to make this move." % (end - start))
 
         if self.debug:
+            next_node = next_state_fast(board, self.id, best_move)
             print("Placed a piece in (%d, %d)" % (best_move[0], best_move[1]))
             debug_print_board(next_node)
 
