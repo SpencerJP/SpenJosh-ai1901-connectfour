@@ -1,10 +1,21 @@
 import numpy as np
 from connectfour.agents.computer_player import RandomAgent
 
-class JoshAgent(RandomAgent):
+def count_moves(board):
+    """counts the amount of tokens that have been inserted into the board."""
+    sum_of_moves = 0
+    for i in range(board.height):
+        for j in range(board.width):
+            if board.board[i][j] != 0:
+                sum_of_moves += 1
+
+    return sum_of_moves
+
+
+class StudentAgent(RandomAgent):
     def __init__(self, name):
         super().__init__(name)
-        self.MaxDepth = 4
+        self.MaxDepth = 3
         # Conpensation for if StudentAgent is player 1(=1) or 2(=-1)
         self.player_id_compensation = 1 if int(name[-1]) == 1 else -1
 
@@ -12,10 +23,16 @@ class JoshAgent(RandomAgent):
         """
         Args:
             board: An instance of `Board` that is the current state of the board.
+
         Returns:
             A tuple of two integers, (row, col)
         """
-
+        no_moves = count_moves(board)
+        if no_moves%10 == 0 and self.player_id_compensation == 1:
+            self.MaxDepth += 1
+        if (no_moves-1)%10 == 0 and self.player_id_compensation == -1:
+            self.MaxDepth += 1
+        print(no_moves, self.MaxDepth)
         valid_moves = board.valid_moves()
         vals = []
         moves = []
@@ -30,6 +47,14 @@ class JoshAgent(RandomAgent):
 
     def dfMiniMax(self, board, depth):
         # Goal return column with maximized scores of all possible next states
+
+        # Return very large score immediately if board has a winner,
+        # to avoid further expansion and evaluation.
+        if board.winner() == 1:
+            return self.player_id_compensation * 10000
+        if board.winner() == 2:
+            return self.player_id_compensation * -10000
+
         if depth == self.MaxDepth:
             return self.evaluateBoardState(board)
 
@@ -64,6 +89,7 @@ class JoshAgent(RandomAgent):
         """
         """
         These are the variables and functions for board objects
+
         Board Variables:
             board.width
             board.height
@@ -72,6 +98,7 @@ class JoshAgent(RandomAgent):
             board.winning_zones
             board.score_array
             board.current_player_score
+
         Board Functions:
             get_cell_value(row, col)
             try_move(col)
@@ -82,84 +109,101 @@ class JoshAgent(RandomAgent):
             next_state(turn)
             winner()
         """
-        if board.winner() == 1:
-            return self.player_id_compensation * 10000
-        if board.winner() == 2:
-            return self.player_id_compensation * -10000
+
+        # Get set of threats for each player
         npboard = np.array(board.board)
+        p1_threats = set()
+        p2_threats = set()
+        p1_temp, p2_temp = vertical_threat(npboard)
+        p1_threats.update(p1_temp)
+        p2_threats.update(p2_temp)
+        p1_temp, p2_temp = horizontal_threat(npboard)
+        p1_threats.update(p1_temp)
+        p2_threats.update(p2_temp)
+        p1_temp, p2_temp = diagonal_threat(npboard)
+        p1_threats.update(p1_temp)
+        p2_threats.update(p2_temp)
+
+        # Remove bad threats
+        p1_threats, p2_threats = remove_bad_threats(p1_threats, p2_threats)
+
         return self.player_id_compensation*(
             (
-                vertical_threat(npboard) + horizontal_threat(npboard)
-                + diagonal_threat(npboard))**2
-            + central_heuristic(board)/10
-        )
+            get_threat_score(p1_threats, p2_threats) +
+            central_heuristic(board)/10
+        ))
 
 
 def vertical_threat(board_array):
-    """Function to determine how many vertical threats exist
-    returns score for how many more threats player1 has over player2
+    """Function to find vertical threats for each player
     """
     h, w = board_array.shape
-    score = 0
+    p1_threats = set()
+    p2_threats = set()
 
     mask = np.array([0, 1, 1, 1])
 
     for c in range(w):
         for r in range(h-3):
             if (board_array[r:r+4, c] == mask).all():
-                score += 1
+                p1_threats.add((r, c))
             elif (board_array[r:r+4, c] == 2*mask).all():
-                score -= 1
-    return score
+                p2_threats.add((r, c))
+    return p1_threats, p2_threats
 
 
 def horizontal_threat(board_array):
-    """Function to determine how many horizontal threats exist
-    returns score for how many more threats player1 has over player2
+    """Function to find horizontal threats for each player
     """
     h, w = board_array.shape
-    score = 0
-
-    masks = [np.array([1,1,1,0]),
-             np.array([1,1,0,1]),
+    p1_threats = set()
+    p2_threats = set()
+    masks = [np.array([0,1,1,1]),
              np.array([1,0,1,1]),
-             np.array([0,1,1,1])]
+             np.array([1,1,0,1]),
+             np.array([1,1,1,0])]
 
 
     for c in range(w-3):
         for r in range(h):
             board_slice = board_array[r, c:c+4]
-            for mask in masks:
+            for index, mask in enumerate(masks):
                 if (board_slice == mask).all():
-                    score += 1
+                    p1_threats.add((r, c+index))
                 elif (board_slice == 2*mask).all():
-                    score -= 1
-    return score
+                    p2_threats.add((r, c+index))
+    return p1_threats, p2_threats
 
 
 def diagonal_threat(board_array):
-    """Function to determine how many diagonal threats exist
-    returns score for how many more threats player1 has over player2
+    """Function to find diagonal_threats for each player
     """
     h, w = board_array.shape
-    score = 0
+    p1_threats = set()
+    p2_threats = set()
 
-    masks = [np.array([1,1,1,0]),
-             np.array([1,1,0,1]),
+    masks = [np.array([0,1,1,1]),
              np.array([1,0,1,1]),
-             np.array([0,1,1,1])]
+             np.array([1,1,0,1]),
+             np.array([1,1,1,0])]
 
     for c in range(w-3):
         for r in range(h-3):
             board_slices = [board_array[r:r+4, c:c+4].diagonal(),
                             np.fliplr(board_array[r:r+4, c:c+4]).diagonal()]
-            for board_slice in board_slices:
-                for mask in masks:
+            for positive_slope, board_slice in enumerate(board_slices):
+                for index, mask in enumerate(masks):
                     if (board_slice == mask).all():
-                        score += 1
+                        if positive_slope:
+                            p1_threats.add((r+index, c+(3-index)))
+                        else:
+                            p1_threats.add((r+index, c+index))
                     elif (board_slice == 2*mask).all():
-                        score -= 1
-    return score
+                        if positive_slope:
+                            p2_threats.add((r+index, c+(3-index)))
+                        else:
+                            p2_threats.add((r+index, c+index))
+    return p1_threats, p2_threats
 
 
 def central_heuristic(board):
@@ -177,3 +221,44 @@ def central_heuristic(board):
             elif row[col] == 2:
                 middle_score -= score
     return middle_score
+
+
+def remove_bad_threats(p1_threats, p2_threats):
+    """Function to remove bad threats from the threat sets
+    """
+    for r, c in p1_threats:
+        # Remove any oposition threat 1 position above as it is redundant
+        p2_threats.discard((r-1, c))
+
+    for r, c in p2_threats:
+        # Remove any oposition threat 1 position above as it is redundant
+        p1_threats.discard((r-1, c))
+
+    return p1_threats, p2_threats
+
+
+def get_threat_score(p1, p2):
+    """ Function to evaluate the score for the boards threats
+    Threats that exist at lower levels of the board should score higher
+    Threats by player 1 should score higher if made on odd rows,
+    Threats by player 2 should score higher if make on even rows
+    """
+    score = 0
+
+    for r, c in p1:
+        if (6-r)%2:
+            # Odd threat
+            score += 1.3*r
+        else:
+            # Even threat
+            score += 1*r
+
+    for r, c in p2:
+        if (6-r)%2:
+            # Odd threat
+            score -= 1*r
+        else:
+            # Even threat
+            score -= 1.3*r
+
+    return score
