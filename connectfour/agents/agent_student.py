@@ -85,17 +85,29 @@ class StudentAgent(RandomAgent):
             next_state(turn)
             winner()
         """
-        if board.winner() == 1:
-            return self.player_id_compensation * 10000
-        if board.winner() == 2:
-            return self.player_id_compensation * -10000
+
+        # Get set of threats for each player
         npboard = np.array(board.board)
+        p1_threats = set()
+        p2_threats = set()
+        p1_temp, p2_temp = vertical_threat(npboard)
+        p1_threats.update(p1_temp)
+        p2_threats.update(p2_temp)
+        p1_temp, p2_temp = horizontal_threat(npboard)
+        p1_threats.update(p1_temp)
+        p2_threats.update(p2_temp)
+        p1_temp, p2_temp = diagonal_threat(npboard)
+        p1_threats.update(p1_temp)
+        p2_threats.update(p2_temp)
+
+        # Remove bad threats
+        p1_threats, p2_threats = remove_bad_threats(p1_threats, p2_threats)
+
         return self.player_id_compensation*(
             (
-                vertical_threat(npboard) + horizontal_threat(npboard)
-                + diagonal_threat(npboard))**2
-            + central_heuristic(board)/10
-        )
+            get_threat_score(p1_threats, p2_threats) +
+            central_heuristic(board)/10
+        ))
 
 
 def vertical_threat(board_array):
