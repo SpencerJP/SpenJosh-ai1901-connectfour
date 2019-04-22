@@ -200,3 +200,29 @@ def remove_bad_threats(p1_threats, p2_threats):
 
     return p1_threats, p2_threats
 
+
+def get_threat_score(p1, p2):
+    """ Function to evaluate the score for the boards threats
+    Threats that exist at lower levels of the board should score higher
+    Threats by player 1 should score higher if made on odd rows,
+    Threats by player 2 should score higher if make on even rows
+    """
+    score = 0
+
+    for r, c in p1:
+        if (6-r)%2:
+            # Odd threat
+            score += 1.3*r
+        else:
+            # Even threat
+            score += 1*r
+
+    for r, c in p2:
+        if (6-r)%2:
+            # Odd threat
+            score -= 1*r
+        else:
+            # Even threat
+            score -= 1.3*r
+
+    return score
