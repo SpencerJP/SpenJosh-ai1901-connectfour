@@ -249,7 +249,7 @@ class StudentAgent(RandomAgent):
         moves = []
 
         for move in valid_moves:
-            minimum = int(-(self.dimensions - current_move_number) / 2)
+            minimum = int(-(self.dimensions - 1 - current_move_number) / 2)
 
             maximum = int((self.dimensions + 1 - current_move_number) / 2)
             next_node = next_state_fast(board, self.id, move)
@@ -326,25 +326,24 @@ class StudentAgent(RandomAgent):
         if num_moves >= self.dimensions - 2:
             return 0
 
-        # # set alpha to the minimum possible value
-        # minimum = int(-(self.dimensions - 2 - num_moves) / 2)
-        # if alpha < minimum:
-        #     alpha = minimum
-        #     if alpha >= beta:
-        #         return alpha #prune children.
-        #
-        # # set beta to the maximum possible value
-        # maximum = int((self.dimensions - 1 - num_moves) / 2)
-        # if beta > maximum:
-        #     beta = maximum
-        #     if alpha >= beta:
-        #         return beta  #prune children.
+        minimum = int(-(self.dimensions - num_moves) / 2)
+        if alpha < minimum:
+            alpha = minimum
+            if alpha >= beta:
+                return alpha #prune children.
+
+        # set beta to the maximum possible value
+        maximum = int((self.dimensions - num_moves) / 2)
+        if beta > maximum:
+            beta = maximum
+            if alpha >= beta:
+                return beta  #prune children.
 
 
         valid_moves = valid_moves_wrapper(board)
         vals = []
         if sign == 1:
-            value = 1000
+            value = maximum
             for move in valid_moves:
                 next_node = next_state_fast(board, get_current_player(num_moves+1), move)
                 # recursively go through the children of this node.
@@ -359,7 +358,7 @@ class StudentAgent(RandomAgent):
                 if alpha >= beta:
                     break
             return value
-        value = -1000
+        value = minimum
         for move in valid_moves:
             next_node = next_state_fast(board, get_current_player(num_moves+1), move)
             # recursively go through the children of this node.
