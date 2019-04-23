@@ -85,84 +85,101 @@ class StudentAgent(RandomAgent):
             next_state(turn)
             winner()
         """
-        if board.winner() == 1:
-            return self.player_id_compensation * 10000
-        if board.winner() == 2:
-            return self.player_id_compensation * -10000
+
+        # Get set of threats for each player
         npboard = np.array(board.board)
+        p1_threats = set()
+        p2_threats = set()
+        p1_temp, p2_temp = vertical_threat(npboard)
+        p1_threats.update(p1_temp)
+        p2_threats.update(p2_temp)
+        p1_temp, p2_temp = horizontal_threat(npboard)
+        p1_threats.update(p1_temp)
+        p2_threats.update(p2_temp)
+        p1_temp, p2_temp = diagonal_threat(npboard)
+        p1_threats.update(p1_temp)
+        p2_threats.update(p2_temp)
+
+        # Remove bad threats
+        p1_threats, p2_threats = remove_bad_threats(p1_threats, p2_threats)
+
         return self.player_id_compensation*(
             (
-                vertical_threat(npboard) + horizontal_threat(npboard)
-                + diagonal_threat(npboard))**2
-            + central_heuristic(board)/10
-        )
+            get_threat_score(p1_threats, p2_threats) +
+            central_heuristic(board)/10
+        ))
 
 
 def vertical_threat(board_array):
-    """Function to determine how many vertical threats exist
-    returns score for how many more threats player1 has over player2
+    """Function to find vertical threats for each player
     """
     h, w = board_array.shape
-    score = 0
+    p1_threats = set()
+    p2_threats = set()
 
     mask = np.array([0, 1, 1, 1])
 
     for c in range(w):
         for r in range(h-3):
             if (board_array[r:r+4, c] == mask).all():
-                score += 1
+                p1_threats.add((r, c))
             elif (board_array[r:r+4, c] == 2*mask).all():
-                score -= 1
-    return score
+                p2_threats.add((r, c))
+    return p1_threats, p2_threats
 
 
 def horizontal_threat(board_array):
-    """Function to determine how many horizontal threats exist
-    returns score for how many more threats player1 has over player2
+    """Function to find horizontal threats for each player
     """
     h, w = board_array.shape
-    score = 0
-
-    masks = [np.array([1,1,1,0]),
-             np.array([1,1,0,1]),
+    p1_threats = set()
+    p2_threats = set()
+    masks = [np.array([0,1,1,1]),
              np.array([1,0,1,1]),
-             np.array([0,1,1,1])]
+             np.array([1,1,0,1]),
+             np.array([1,1,1,0])]
 
 
     for c in range(w-3):
         for r in range(h):
             board_slice = board_array[r, c:c+4]
-            for mask in masks:
+            for index, mask in enumerate(masks):
                 if (board_slice == mask).all():
-                    score += 1
+                    p1_threats.add((r, c+index))
                 elif (board_slice == 2*mask).all():
-                    score -= 1
-    return score
+                    p2_threats.add((r, c+index))
+    return p1_threats, p2_threats
 
 
 def diagonal_threat(board_array):
-    """Function to determine how many diagonal threats exist
-    returns score for how many more threats player1 has over player2
+    """Function to find diagonal_threats for each player
     """
     h, w = board_array.shape
-    score = 0
+    p1_threats = set()
+    p2_threats = set()
 
-    masks = [np.array([1,1,1,0]),
-             np.array([1,1,0,1]),
+    masks = [np.array([0,1,1,1]),
              np.array([1,0,1,1]),
-             np.array([0,1,1,1])]
+             np.array([1,1,0,1]),
+             np.array([1,1,1,0])]
 
     for c in range(w-3):
         for r in range(h-3):
             board_slices = [board_array[r:r+4, c:c+4].diagonal(),
                             np.fliplr(board_array[r:r+4, c:c+4]).diagonal()]
-            for board_slice in board_slices:
-                for mask in masks:
+            for positive_slope, board_slice in enumerate(board_slices):
+                for index, mask in enumerate(masks):
                     if (board_slice == mask).all():
-                        score += 1
+                        if positive_slope:
+                            p1_threats.add((r+index, c+(3-index)))
+                        else:
+                            p1_threats.add((r+index, c+index))
                     elif (board_slice == 2*mask).all():
-                        score -= 1
-    return score
+                        if positive_slope:
+                            p2_threats.add((r+index, c+(3-index)))
+                        else:
+                            p2_threats.add((r+index, c+index))
+    return p1_threats, p2_threats
 
 
 def central_heuristic(board):
@@ -180,3 +197,44 @@ def central_heuristic(board):
             elif row[col] == 2:
                 middle_score -= score
     return middle_score
+
+
+def remove_bad_threats(p1_threats, p2_threats):
+    """Function to remove bad threats from the threat sets
+    """
+    for r, c in p1_threats:
+        # Remove any oposition threat 1 position above as it is redundant
+        p2_threats.discard((r-1, c))
+
+    for r, c in p2_threats:
+        # Remove any oposition threat 1 position above as it is redundant
+        p1_threats.discard((r-1, c))
+
+    return p1_threats, p2_threats
+
+
+def get_threat_score(p1, p2):
+    """ Function to evaluate the score for the boards threats
+    Threats that exist at lower levels of the board should score higher
+    Threats by player 1 should score higher if made on odd rows,
+    Threats by player 2 should score higher if make on even rows
+    """
+    score = 0
+
+    for r, c in p1:
+        if (6-r)%2:
+            # Odd threat
+            score += 1.3*r
+        else:
+            # Even threat
+            score += 1*r
+
+    for r, c in p2:
+        if (6-r)%2:
+            # Odd threat
+            score -= 1*r
+        else:
+            # Even threat
+            score -= 1.3*r
+
+    return score
