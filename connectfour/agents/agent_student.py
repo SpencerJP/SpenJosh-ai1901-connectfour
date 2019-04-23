@@ -436,9 +436,9 @@ def horizontal_threat(board_array):
     p1_threats = set()
     p2_threats = set()
     masks = [np.array([0,1,1,1]),
-         np.array([1,0,1,1]),
-         np.array([1,1,0,1]),
-         np.array([1,1,1,0])]
+             np.array([1,0,1,1]),
+             np.array([1,1,0,1]),
+             np.array([1,1,1,0])]
 
 
     for c in range(w-3):
@@ -460,9 +460,9 @@ def diagonal_threat(board_array):
     p2_threats = set()
 
     masks = [np.array([0,1,1,1]),
-         np.array([1,0,1,1]),
-         np.array([1,1,0,1]),
-         np.array([1,1,1,0])]
+             np.array([1,0,1,1]),
+             np.array([1,1,0,1]),
+             np.array([1,1,1,0])]
 
     for c in range(w-3):
         for r in range(h-3):
