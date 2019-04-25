@@ -11,6 +11,12 @@ import time
 #             "0011000")]
 
 boards = [("0000000"
+            "1000000"
+            "2000000" #(2,2), 1's turn https://i.imgur.com/IXoqPJq.png
+            "1020000"
+            "1020000"
+            "1020000"),
+            ("0000000"
             "0000000"
             "0000000" #(5,4), 1's turn https://i.imgur.com/IXoqPJq.png
             "0000000"
@@ -28,12 +34,6 @@ boards = [("0000000"
                 "0020000"
                 "0020000"
                 "0020000"),
-          ("0000000"
-         "1000000"
-         "2000000" #(2,2), 1's turn https://i.imgur.com/IXoqPJq.png
-         "1020000"
-         "1020000"
-         "1020000"),
             ("0000000"
             "0000000"
             "0000000" #(2,2), 1's turn https://i.imgur.com/IXoqPJq.png
@@ -59,7 +59,7 @@ boards = [("0000000"
               "1112211"
               "2221122")]
 
-expected_values = [(5,4), (2,2), (2,2), "?", (2,2), (2,1), (1,1), (1,0) ]
+expected_values = [(2,2), (5,4), (2,2), "?", (2,2), (2,1), (1,1), (1,0) ]
 
 # expected_values = [(5, 4)]
 
@@ -93,7 +93,9 @@ def main():
         convertStringToBoard(position, gameboard)
         agent = StudentAgent(str(i))
         agent.debug = True
+        print(1)
         result = agent.get_move(gameboard)
+        print(2)
         if result is None:
             print("your test is flawed as there is already a winner somewhere on the board.")
         else:

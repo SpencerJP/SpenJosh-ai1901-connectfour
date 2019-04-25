@@ -39,8 +39,9 @@ def count_moves(board):
 
 def valid_moves_wrapper(board):
     """Wrap the board.valid_moves() generator in our own organiser that
-    orders the moves centre to outside, going right first if it is uneven.
-    this optimisation is specific to 6*7 boards, if it isn't 7 wide then abort."""
+    orders the moves centre to outside, going right first if it is uneven."""
+
+    #this optimisation is specific to 6*7 boards, if it isn't 7 wide then abort.
     if board.width != 7:
         return board.valid_moves()
 
@@ -57,16 +58,16 @@ def valid_moves_wrapper(board):
 
 
 
-# pylint: disable=E1101
 def valid_non_losing_moves(board, num_moves):
+    # pylint: disable=E1101
     """
-    returns: a generator of moves that don't cause a loss the turn after (2ply)
+    returns: a generator of moves that don't cause a loss the turn after
 
     board: the node/game state to check
-    num_moves: the amount of moves to get to this node that we are checking
+    num_moves: the amount of moves to get to this point
     """
     current_player = get_current_player(num_moves)
-    other_player = 3 - current_player
+    other_player = get_current_player(num_moves+1)
 
     valid_moves = valid_moves_wrapper(board)
     #loop through each move
@@ -92,8 +93,8 @@ def valid_non_losing_moves(board, num_moves):
         if not failure:
             yield move
 
-# pylint: disable=E1101
 def count_non_losing_moves(board, num_moves):
+     # pylint: disable=E1101
     """
     I made this method because I feel that that the
     count_non_losing_moves() generator method is inappropriate.
@@ -103,7 +104,7 @@ def count_non_losing_moves(board, num_moves):
     num_moves: the amount of moves to get to this point
     """
     current_player = get_current_player(num_moves)
-    other_player = 3 - current_player
+    other_player = get_current_player(num_moves+1)
 
     valid_moves = valid_moves_wrapper(board)
     sum_of_moves = 0
@@ -132,17 +133,16 @@ def count_non_losing_moves(board, num_moves):
             sum_of_moves += 1
     return sum_of_moves
 
-
 class Empty(object):
     """hack to avoid _build_winning_zones_map in the board class code"""
 
-#pylint: disable=W0201
 def next_state_fast(board, player_id, move):
     """My monkey patching method to avoid using deepcopy and _build_winning_zones_map
     this hack skips the constructor in the board class,
     hence the pylint suppressor"""
     next_board = Empty()
     next_board.__class__ = Board
+    #pylint: disable=W0201
     next_board.width = 7
     next_board.height = 6
     next_board.num_to_connect = 4
@@ -298,19 +298,22 @@ class StudentAgent(RandomAgent):
         last move is our agent's move or the enemy's.
         1 for our move, -1 for enemy move.
 
-        depth is how deep our search has gone so far, beginning at 0 from get_move()."""
+        depth is how deep our search has gone so far, beginning at 0 from get_move().
+        """
+
+
+
 
         # no valid moves that won't cause a loss, aka dead end
+
         sum_of_moves = count_non_losing_moves(board, num_moves)
         if sum_of_moves == 0:
             return sign * -int((self.dimensions - num_moves - 2) / 2)
 
-        """check if this board has a winner and return if it does
-        this is the heuristic of our algorithm.
-        The number it returns is scored on how many moves
-        it would take to guarantee a victory for a perfect player.
-        Using this you can score the difference between a distant victory
-        and a close one."""
+        #check if this board has a winner and return if it does
+        #this is the heuristic of our algorithm.
+        #The number it returns is scored on how many moves
+        #it would take to guarantee a victory for a perfect player.
         winner_num = board.winner()
         if winner_num != 0:
             return sign * int((self.dimensions - num_moves) / 2)
@@ -320,8 +323,6 @@ class StudentAgent(RandomAgent):
 
         #detect a draw, once 40 tokens are on the board in a 6*7 game and no one has won already,
         #no one can possibly win now.
-        #This is necessary because a good AI will need to try go for a draw if it is impossible to win.
-        #0 represents an equal scored move for both players.
         if num_moves >= self.dimensions - 2:
             return 0
 
@@ -488,6 +489,7 @@ def central_heuristic(board):
     outer column = 0, middle column = 3 for a 7 column board
     """
     middle_score = 0
+    middle_col = round((board.width+1)/2)-1
     for row in board.board:
         for col in range(board.width):
             score = middle_col-abs(middle_col-col)
