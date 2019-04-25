@@ -175,11 +175,11 @@ class StudentAgent(RandomAgent):
             self.max_depth = 1
             return
         self.max_depth = 3
-        if possible_branches < 7:
-            self.max_depth = self.max_depth + int(7 - possible_branches)
+        # if possible_branches < 7: #removed for the >0s time limit
+        #     self.max_depth = self.max_depth + int(7 - possible_branches)
         if num_moves > 20:
-            self.max_depth = 8
-        if num_moves > 24:
+            self.max_depth = 6
+        if num_moves > 27:
             self.max_depth = self.dimensions # max
 
     def get_move(self, board):
