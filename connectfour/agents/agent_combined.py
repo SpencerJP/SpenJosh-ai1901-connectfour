@@ -155,7 +155,7 @@ def next_state_fast(board, player_id, move):
     return next_board
 
  # pylint: disable=too-many-instance-attributes
-class StudentAgent(RandomAgent):
+class CombinedAgent(RandomAgent):
     """Our agent class."""
     def __init__(self, name):
         super().__init__(name)
