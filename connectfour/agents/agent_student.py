@@ -488,6 +488,7 @@ def central_heuristic(board):
     outer column = 0, middle column = 3 for a 7 column board
     """
     middle_score = 0
+    middle_col = round((board.width+1)/2)-1
     for row in board.board:
         for col in range(board.width):
             score = middle_col-abs(middle_col-col)
