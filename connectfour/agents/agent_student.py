@@ -39,9 +39,8 @@ def count_moves(board):
 
 def valid_moves_wrapper(board):
     """Wrap the board.valid_moves() generator in our own organiser that
-    orders the moves centre to outside, going right first if it is uneven."""
-
-    #this optimisation is specific to 6*7 boards, if it isn't 7 wide then abort.
+    orders the moves centre to outside, going right first if it is uneven.
+    this optimisation is specific to 6*7 boards, if it isn't 7 wide then abort."""
     if board.width != 7:
         return board.valid_moves()
 
@@ -58,16 +57,16 @@ def valid_moves_wrapper(board):
 
 
 
+# pylint: disable=E1101
 def valid_non_losing_moves(board, num_moves):
-    # pylint: disable=E1101
     """
-    returns: a generator of moves that don't cause a loss the turn after
+    returns: a generator of moves that don't cause a loss the turn after (2ply)
 
     board: the node/game state to check
-    num_moves: the amount of moves to get to this point
+    num_moves: the amount of moves to get to this node that we are checking
     """
     current_player = get_current_player(num_moves)
-    other_player = get_current_player(num_moves+1)
+    other_player = 3 - current_player
 
     valid_moves = valid_moves_wrapper(board)
     #loop through each move
@@ -93,8 +92,8 @@ def valid_non_losing_moves(board, num_moves):
         if not failure:
             yield move
 
+# pylint: disable=E1101
 def count_non_losing_moves(board, num_moves):
-     # pylint: disable=E1101
     """
     I made this method because I feel that that the
     count_non_losing_moves() generator method is inappropriate.
@@ -104,7 +103,7 @@ def count_non_losing_moves(board, num_moves):
     num_moves: the amount of moves to get to this point
     """
     current_player = get_current_player(num_moves)
-    other_player = get_current_player(num_moves+1)
+    other_player = 3 - current_player
 
     valid_moves = valid_moves_wrapper(board)
     sum_of_moves = 0
@@ -133,16 +132,17 @@ def count_non_losing_moves(board, num_moves):
             sum_of_moves += 1
     return sum_of_moves
 
+
 class Empty(object):
     """hack to avoid _build_winning_zones_map in the board class code"""
 
+#pylint: disable=W0201
 def next_state_fast(board, player_id, move):
     """My monkey patching method to avoid using deepcopy and _build_winning_zones_map
     this hack skips the constructor in the board class,
     hence the pylint suppressor"""
     next_board = Empty()
     next_board.__class__ = Board
-    #pylint: disable=W0201
     next_board.width = 7
     next_board.height = 6
     next_board.num_to_connect = 4
@@ -298,22 +298,19 @@ class StudentAgent(RandomAgent):
         last move is our agent's move or the enemy's.
         1 for our move, -1 for enemy move.
 
-        depth is how deep our search has gone so far, beginning at 0 from get_move().
-        """
-
-
-
+        depth is how deep our search has gone so far, beginning at 0 from get_move()."""
 
         # no valid moves that won't cause a loss, aka dead end
-
         sum_of_moves = count_non_losing_moves(board, num_moves)
         if sum_of_moves == 0:
-            return sign * -int((self.dimensions - num_moves) / 2)
+            return sign * -int((self.dimensions - num_moves - 2) / 2)
 
-        #check if this board has a winner and return if it does
-        #this is the heuristic of our algorithm.
-        #The number it returns is scored on how many moves
-        #it would take to guarantee a victory for a perfect player.
+        """check if this board has a winner and return if it does
+        this is the heuristic of our algorithm.
+        The number it returns is scored on how many moves
+        it would take to guarantee a victory for a perfect player.
+        Using this you can score the difference between a distant victory
+        and a close one."""
         winner_num = board.winner()
         if winner_num != 0:
             return sign * int((self.dimensions - num_moves) / 2)
@@ -323,27 +320,15 @@ class StudentAgent(RandomAgent):
 
         #detect a draw, once 40 tokens are on the board in a 6*7 game and no one has won already,
         #no one can possibly win now.
+        #This is necessary because a good AI will need to try go for a draw if it is impossible to win.
+        #0 represents an equal scored move for both players.
         if num_moves >= self.dimensions - 2:
             return 0
-
-        minimum = int(-(self.dimensions - num_moves) / 2)
-        if alpha < minimum:
-            alpha = minimum
-            if alpha >= beta:
-                return alpha #prune children.
-
-        # set beta to the maximum possible value
-        maximum = int((self.dimensions - num_moves) / 2)
-        if beta > maximum:
-            beta = maximum
-            if alpha >= beta:
-                return beta  #prune children.
-
 
         valid_moves = valid_moves_wrapper(board)
         vals = []
         if sign == 1:
-            value = maximum
+            value = 1000
             for move in valid_moves:
                 next_node = next_state_fast(board, get_current_player(num_moves+1), move)
                 # recursively go through the children of this node.
@@ -358,7 +343,7 @@ class StudentAgent(RandomAgent):
                 if alpha >= beta:
                     break
             return value
-        value = minimum
+        value = -1000
         for move in valid_moves:
             next_node = next_state_fast(board, get_current_player(num_moves+1), move)
             # recursively go through the children of this node.
@@ -374,18 +359,15 @@ class StudentAgent(RandomAgent):
         return value
 
     def evaluate_board_state(self, board):
-
         """
         Your evaluation function should look at the current state and return a score for it.
         As an example, the random agent provided works as follows:
             If the opponent has won this game, return -1.
             If we have won the game, return 1.
-
-        If neither of the players has won, return a random number.
+            If neither of the players has won, return a random number.
+        """
+        """
         These are the variables and functions for board objects
-         which may be helpful when creating your Agent.
-        Look into board.py for more information/descriptions of each,
-         or to look for any other definitions which may help you.
 
         Board Variables:
             board.width
@@ -406,80 +388,98 @@ class StudentAgent(RandomAgent):
             next_state(turn)
             winner()
         """
+
+        # Get set of threats for each player
         npboard = np.array(board.board)
-        return (
-            (
-                vertical_threat(npboard) + horizontal_threat(npboard)
-                + diagonal_threat(npboard))**2
-            + central_heuristic(board)/10
-        )
+        p1_threats = set()
+        p2_threats = set()
+        p1_temp, p2_temp = vertical_threat(npboard)
+        p1_threats.update(p1_temp)
+        p2_threats.update(p2_temp)
+        p1_temp, p2_temp = horizontal_threat(npboard)
+        p1_threats.update(p1_temp)
+        p2_threats.update(p2_temp)
+        p1_temp, p2_temp = diagonal_threat(npboard)
+        p1_threats.update(p1_temp)
+        p2_threats.update(p2_temp)
+
+        # Remove bad threats
+        p1_threats, p2_threats = remove_bad_threats(p1_threats, p2_threats)
+
+        return (get_threat_score(p1_threats, p2_threats) +
+            central_heuristic(board)/10)
 
 
 def vertical_threat(board_array):
-    """Function to determine how many vertical threats exist
-    returns score for how many more threats player1 has over player2
+    """Function to find vertical threats for each player
     """
     h, w = board_array.shape
-    score = 0
+    p1_threats = set()
+    p2_threats = set()
 
     mask = np.array([0, 1, 1, 1])
 
     for c in range(w):
         for r in range(h-3):
             if (board_array[r:r+4, c] == mask).all():
-                score += 1
+                p1_threats.add((r, c))
             elif (board_array[r:r+4, c] == 2*mask).all():
-                score -= 1
-    return score
+                p2_threats.add((r, c))
+    return p1_threats, p2_threats
 
 
 def horizontal_threat(board_array):
-    """Function to determine how many horizontal threats exist
-    returns score for how many more threats player1 has over player2
+    """Function to find horizontal threats for each player
     """
     h, w = board_array.shape
-    score = 0
-
-    masks = [np.array([1,1,1,0]),
-             np.array([1,1,0,1]),
+    p1_threats = set()
+    p2_threats = set()
+    masks = [np.array([0,1,1,1]),
              np.array([1,0,1,1]),
-             np.array([0,1,1,1])]
+             np.array([1,1,0,1]),
+             np.array([1,1,1,0])]
 
 
     for c in range(w-3):
         for r in range(h):
             board_slice = board_array[r, c:c+4]
-            for mask in masks:
+            for index, mask in enumerate(masks):
                 if (board_slice == mask).all():
-                    score += 1
+                    p1_threats.add((r, c+index))
                 elif (board_slice == 2*mask).all():
-                    score -= 1
-    return score
+                    p2_threats.add((r, c+index))
+    return p1_threats, p2_threats
 
 
 def diagonal_threat(board_array):
-    """Function to determine how many diagonal threats exist
-    returns score for how many more threats player1 has over player2
+    """Function to find diagonal_threats for each player
     """
     h, w = board_array.shape
-    score = 0
+    p1_threats = set()
+    p2_threats = set()
 
-    masks = [np.array([1,1,1,0]),
-             np.array([1,1,0,1]),
+    masks = [np.array([0,1,1,1]),
              np.array([1,0,1,1]),
-             np.array([0,1,1,1])]
+             np.array([1,1,0,1]),
+             np.array([1,1,1,0])]
 
     for c in range(w-3):
         for r in range(h-3):
             board_slices = [board_array[r:r+4, c:c+4].diagonal(),
                             np.fliplr(board_array[r:r+4, c:c+4]).diagonal()]
-            for board_slice in board_slices:
-                for mask in masks:
+            for positive_slope, board_slice in enumerate(board_slices):
+                for index, mask in enumerate(masks):
                     if (board_slice == mask).all():
-                        score += 1
+                        if positive_slope:
+                            p1_threats.add((r+index, c+(3-index)))
+                        else:
+                            p1_threats.add((r+index, c+index))
                     elif (board_slice == 2*mask).all():
-                        score -= 1
-    return score
+                        if positive_slope:
+                            p2_threats.add((r+index, c+(3-index)))
+                        else:
+                            p2_threats.add((r+index, c+index))
+    return p1_threats, p2_threats
 
 
 def central_heuristic(board):
@@ -488,7 +488,6 @@ def central_heuristic(board):
     outer column = 0, middle column = 3 for a 7 column board
     """
     middle_score = 0
-    middle_col = round((board.width+1)/2)-1
     for row in board.board:
         for col in range(board.width):
             score = middle_col-abs(middle_col-col)
@@ -497,3 +496,44 @@ def central_heuristic(board):
             elif row[col] == 2:
                 middle_score -= score
     return middle_score
+
+
+def remove_bad_threats(p1_threats, p2_threats):
+    """Function to remove bad threats from the threat sets
+    """
+    for r, c in p1_threats:
+        # Remove any oposition threat 1 position above as it is redundant
+        p2_threats.discard((r-1, c))
+
+    for r, c in p2_threats:
+        # Remove any oposition threat 1 position above as it is redundant
+        p1_threats.discard((r-1, c))
+
+    return p1_threats, p2_threats
+
+
+def get_threat_score(p1, p2):
+    """ Function to evaluate the score for the boards threats
+    Threats that exist at lower levels of the board should score higher
+    Threats by player 1 should score higher if made on odd rows,
+    Threats by player 2 should score higher if make on even rows
+    """
+    score = 0
+
+    for r, c in p1:
+        if (6-r)%2:
+            # Odd threat
+            score += 1.3*r
+        else:
+            # Even threat
+            score += 1*r
+
+    for r, c in p2:
+        if (6-r)%2:
+            # Odd threat
+            score -= 1*r
+        else:
+            # Even threat
+            score -= 1.3*r
+
+    return score
