@@ -7,6 +7,7 @@ from connectfour.agents.computer_player import RandomAgent
 
 PLAYER_ONE_ID = 1
 PLAYER_TWO_ID = 2
+LARGE_NUM = 100
 
 def get_current_player(num_moves):
     """Counts the moves and returns player 1 if move count is even, returns player 2 if odd"""
@@ -164,7 +165,6 @@ class CombinedAgent(RandomAgent):
         self.dimensions = -1
         self.enemy_id = -1
         self.debug = False
-        self.transpos_table = {}
         self.middle_col = -1
         self.max_score = -1
         self.min_score = -1
@@ -215,7 +215,7 @@ class CombinedAgent(RandomAgent):
         #check which player this agent is going to be and set it (as in id, will be either 1 or 2)
         if self.id == -1:
             self.id = get_current_player(current_move_number)
-            self.enemy_id = get_current_player(current_move_number+1)
+            self.enemy_id = 3 - self.id
 
         valid_moves = None
 
@@ -224,6 +224,7 @@ class CombinedAgent(RandomAgent):
             valid_moves = valid_moves_wrapper(board)
             best_move = next(valid_moves)
             if self.debug:
+                print("column number: %d, calculated value: MAX" % (best_move[1]))
                 print("Placed a piece in (%d, %d)" % (best_move[0], best_move[1]))
                 next_node = next_state_fast(board, self.id, best_move)
                 debug_print_board(next_node)
@@ -233,6 +234,7 @@ class CombinedAgent(RandomAgent):
             valid_moves = valid_non_losing_moves(board, current_move_number)
             best_move = next(valid_moves)
             if self.debug:
+                print("column number: %d, calculated value: MAX" % (best_move[1]))
                 print("Placed a piece in (%d, %d)" % (best_move[0], best_move[1]))
                 next_node = next_state_fast(board, self.id, best_move)
                 debug_print_board(next_node)
@@ -303,7 +305,7 @@ class CombinedAgent(RandomAgent):
         # no valid moves that won't cause a loss, aka dead end
         sum_of_moves = count_non_losing_moves(board, num_moves)
         if sum_of_moves == 0:
-            return sign * -int((self.dimensions - num_moves - 2) / 2)
+            return sign * -int((self.dimensions + LARGE_NUM - num_moves - 2) / 2)
 
         """check if this board has a winner and return if it does
         this is the heuristic of our algorithm.
@@ -313,7 +315,8 @@ class CombinedAgent(RandomAgent):
         and a close one."""
         winner_num = board.winner()
         if winner_num != 0:
-            return sign * int((self.dimensions - num_moves) / 2)
+            return sign * int((self.dimensions + LARGE_NUM - num_moves) / 2)
+
 
         if depth == self.max_depth:
             return sign * self.evaluate_board_state(board)
@@ -328,7 +331,7 @@ class CombinedAgent(RandomAgent):
         valid_moves = valid_moves_wrapper(board)
         vals = []
         if sign == 1:
-            value = 1000
+            value = LARGE_NUM
             for move in valid_moves:
                 next_node = next_state_fast(board, get_current_player(num_moves+1), move)
                 # recursively go through the children of this node.
@@ -343,7 +346,7 @@ class CombinedAgent(RandomAgent):
                 if alpha >= beta:
                     break
             return value
-        value = -1000
+        value = -LARGE_NUM
         for move in valid_moves:
             next_node = next_state_fast(board, get_current_player(num_moves+1), move)
             # recursively go through the children of this node.
