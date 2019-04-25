@@ -7,6 +7,7 @@ from connectfour.agents.computer_player import RandomAgent
 
 PLAYER_ONE_ID = 1
 PLAYER_TWO_ID = 2
+LARGE_NUM = 100
 
 def get_current_player(num_moves):
     """Counts the moves and returns player 1 if move count is even, returns player 2 if odd"""
@@ -39,9 +40,8 @@ def count_moves(board):
 
 def valid_moves_wrapper(board):
     """Wrap the board.valid_moves() generator in our own organiser that
-    orders the moves centre to outside, going right first if it is uneven."""
-
-    #this optimisation is specific to 6*7 boards, if it isn't 7 wide then abort.
+    orders the moves centre to outside, going right first if it is uneven.
+    this optimisation is specific to 6*7 boards, if it isn't 7 wide then abort."""
     if board.width != 7:
         return board.valid_moves()
 
@@ -58,16 +58,16 @@ def valid_moves_wrapper(board):
 
 
 
+# pylint: disable=E1101
 def valid_non_losing_moves(board, num_moves):
-    # pylint: disable=E1101
     """
-    returns: a generator of moves that don't cause a loss the turn after
+    returns: a generator of moves that don't cause a loss the turn after (2ply)
 
     board: the node/game state to check
-    num_moves: the amount of moves to get to this point
+    num_moves: the amount of moves to get to this node that we are checking
     """
     current_player = get_current_player(num_moves)
-    other_player = get_current_player(num_moves+1)
+    other_player = 3 - current_player
 
     valid_moves = valid_moves_wrapper(board)
     #loop through each move
@@ -93,8 +93,8 @@ def valid_non_losing_moves(board, num_moves):
         if not failure:
             yield move
 
+# pylint: disable=E1101
 def count_non_losing_moves(board, num_moves):
-     # pylint: disable=E1101
     """
     I made this method because I feel that that the
     count_non_losing_moves() generator method is inappropriate.
@@ -104,7 +104,7 @@ def count_non_losing_moves(board, num_moves):
     num_moves: the amount of moves to get to this point
     """
     current_player = get_current_player(num_moves)
-    other_player = get_current_player(num_moves+1)
+    other_player = 3 - current_player
 
     valid_moves = valid_moves_wrapper(board)
     sum_of_moves = 0
@@ -133,16 +133,17 @@ def count_non_losing_moves(board, num_moves):
             sum_of_moves += 1
     return sum_of_moves
 
+
 class Empty(object):
     """hack to avoid _build_winning_zones_map in the board class code"""
 
+#pylint: disable=W0201
 def next_state_fast(board, player_id, move):
     """My monkey patching method to avoid using deepcopy and _build_winning_zones_map
     this hack skips the constructor in the board class,
     hence the pylint suppressor"""
     next_board = Empty()
     next_board.__class__ = Board
-    #pylint: disable=W0201
     next_board.width = 7
     next_board.height = 6
     next_board.num_to_connect = 4
@@ -164,7 +165,6 @@ class StudentAgent(RandomAgent):
         self.dimensions = -1
         self.enemy_id = -1
         self.debug = False
-        self.transpos_table = {}
         self.middle_col = -1
         self.max_score = -1
         self.min_score = -1
@@ -174,12 +174,14 @@ class StudentAgent(RandomAgent):
         if num_moves == 1:
             self.max_depth = 1
             return
-        self.max_depth = 3
-        if possible_branches < 7:
-            self.max_depth = self.max_depth + int(7 - possible_branches)
+        elif num_moves in (2,3):
+            self.max_depth = 2
+        self.max_depth=3
+        # if possible_branches < 7: #removed for the >0s time limit
+        #     self.max_depth = self.max_depth + int(7 - possible_branches)
         if num_moves > 20:
-            self.max_depth = 8
-        if num_moves > 24:
+            self.max_depth = 6
+        if num_moves > 27:
             self.max_depth = self.dimensions # max
 
     def get_move(self, board):
@@ -215,7 +217,7 @@ class StudentAgent(RandomAgent):
         #check which player this agent is going to be and set it (as in id, will be either 1 or 2)
         if self.id == -1:
             self.id = get_current_player(current_move_number)
-            self.enemy_id = get_current_player(current_move_number+1)
+            self.enemy_id = 3 - self.id
 
         valid_moves = None
 
@@ -224,6 +226,7 @@ class StudentAgent(RandomAgent):
             valid_moves = valid_moves_wrapper(board)
             best_move = next(valid_moves)
             if self.debug:
+                print("column number: %d, calculated value: MAX" % (best_move[1]))
                 print("Placed a piece in (%d, %d)" % (best_move[0], best_move[1]))
                 next_node = next_state_fast(board, self.id, best_move)
                 debug_print_board(next_node)
@@ -233,6 +236,7 @@ class StudentAgent(RandomAgent):
             valid_moves = valid_non_losing_moves(board, current_move_number)
             best_move = next(valid_moves)
             if self.debug:
+                print("column number: %d, calculated value: MAX" % (best_move[1]))
                 print("Placed a piece in (%d, %d)" % (best_move[0], best_move[1]))
                 next_node = next_state_fast(board, self.id, best_move)
                 debug_print_board(next_node)
@@ -298,38 +302,38 @@ class StudentAgent(RandomAgent):
         last move is our agent's move or the enemy's.
         1 for our move, -1 for enemy move.
 
-        depth is how deep our search has gone so far, beginning at 0 from get_move().
-        """
-
-
-
+        depth is how deep our search has gone so far, beginning at 0 from get_move()."""
 
         # no valid moves that won't cause a loss, aka dead end
-
         sum_of_moves = count_non_losing_moves(board, num_moves)
         if sum_of_moves == 0:
-            return sign * -int((self.dimensions - num_moves - 2) / 2)
+            return sign * -int((self.dimensions + LARGE_NUM - num_moves - 2) / 2)
 
-        #check if this board has a winner and return if it does
-        #this is the heuristic of our algorithm.
-        #The number it returns is scored on how many moves
-        #it would take to guarantee a victory for a perfect player.
+        """check if this board has a winner and return if it does
+        this is the heuristic of our algorithm.
+        The number it returns is scored on how many moves
+        it would take to guarantee a victory for a perfect player.
+        Using this you can score the difference between a distant victory
+        and a close one."""
         winner_num = board.winner()
         if winner_num != 0:
-            return sign * int((self.dimensions - num_moves) / 2)
+            return sign * int((self.dimensions + LARGE_NUM - num_moves) / 2)
+
 
         if depth == self.max_depth:
             return sign * self.evaluate_board_state(board)
 
         #detect a draw, once 40 tokens are on the board in a 6*7 game and no one has won already,
         #no one can possibly win now.
+        #This is necessary because a good AI will need to try go for a draw if it is impossible to win.
+        #0 represents an equal scored move for both players.
         if num_moves >= self.dimensions - 2:
             return 0
 
         valid_moves = valid_moves_wrapper(board)
         vals = []
         if sign == 1:
-            value = 1000
+            value = LARGE_NUM
             for move in valid_moves:
                 next_node = next_state_fast(board, get_current_player(num_moves+1), move)
                 # recursively go through the children of this node.
@@ -344,7 +348,7 @@ class StudentAgent(RandomAgent):
                 if alpha >= beta:
                     break
             return value
-        value = -1000
+        value = -LARGE_NUM
         for move in valid_moves:
             next_node = next_state_fast(board, get_current_player(num_moves+1), move)
             # recursively go through the children of this node.

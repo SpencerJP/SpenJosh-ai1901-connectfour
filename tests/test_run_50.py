@@ -18,11 +18,11 @@ def debug_print_board(boardclass):
     print(string)
 
 def main():
-    #test_randomagent(2)
+    test_randomagent(2)
     #test_montecarlo(2)
     #test_joshagent(2)
-    test_combinedagent(2)
-    test_combinedagent2(2)
+    # test_combinedagent(2)
+    # test_combinedagent2(2)
 
 
 def test_randomagent(games=30):
