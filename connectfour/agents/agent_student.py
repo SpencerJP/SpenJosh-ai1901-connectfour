@@ -174,7 +174,7 @@ class StudentAgent(RandomAgent):
         if num_moves == 1:
             self.max_depth = 1
             return
-        self.max_depth = 3
+        self.max_depth = 2
         # if possible_branches < 7: #removed for the >0s time limit
         #     self.max_depth = self.max_depth + int(7 - possible_branches)
         if num_moves > 20:
