@@ -218,6 +218,8 @@ class StudentAgent(RandomAgent):
         non_losing_moves_count = count_non_losing_moves(board, current_move_number)
 
         self.set_variable_depth(current_move_number, non_losing_moves_count)
+
+        #reset our table every turn
         self.transpos_table = {}
 
         #check which player this agent is going to be and set it (as in id, will be either 1 or 2)
