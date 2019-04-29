@@ -7,7 +7,9 @@ from connectfour.agents.computer_player import RandomAgent
 
 PLAYER_ONE_ID = 1
 PLAYER_TWO_ID = 2
-LARGE_NUM = 100
+# Winning moves heuristic returns number of moves till a win
+# This offset is equal to the largest score produced by evaluate_board() to ensure a higher score.
+WIN_HEURISTIC_OFFSET = 100
 
 def get_current_player(num_moves):
     """Counts the moves and returns player 1 if move count is even, returns player 2 if odd"""
@@ -173,14 +175,16 @@ class StudentAgent(RandomAgent):
         """variable depth to make the algorithm less slow, but still produce good results"""
         if num_moves == 1:
             self.max_depth = 1
-            return
-        self.max_depth = 2
-        # if possible_branches < 7: #removed for the >0s time limit
+        # elif possible_branches < 7: #removed for the <20s time limit
         #     self.max_depth = self.max_depth + int(7 - possible_branches)
-        if num_moves > 20:
+        elif num_moves > 2:
+            self.max_depth = 3
+        elif num_moves > 20:
             self.max_depth = 6
-        if num_moves > 27:
+        elif num_moves > 27:
             self.max_depth = self.dimensions # max
+        else:
+            self.max_depth = 2
 
     def get_move(self, board):
         """
@@ -289,7 +293,6 @@ class StudentAgent(RandomAgent):
 
         board is the game state to evaluate.
         alpha is the alpha value for the current node
-
         beta is the beta value for the current node
 
         num_moves is the amount of moves that have been made so far.
@@ -305,7 +308,7 @@ class StudentAgent(RandomAgent):
         # no valid moves that won't cause a loss, aka dead end
         sum_of_moves = count_non_losing_moves(board, num_moves)
         if sum_of_moves == 0:
-            return sign * -int((self.dimensions + LARGE_NUM - num_moves - 2) / 2)
+            return sign * -int((self.dimensions - num_moves - 2) / 2 + WIN_HEURISTIC_OFFSET)
 
         """check if this board has a winner and return if it does
         this is the heuristic of our algorithm.
@@ -315,29 +318,20 @@ class StudentAgent(RandomAgent):
         and a close one."""
         winner_num = board.winner()
         if winner_num != 0:
-            return sign * int((self.dimensions + LARGE_NUM - num_moves) / 2)
+            return sign * int((self.dimensions - num_moves - 2) / 2 + WIN_HEURISTIC_OFFSET)
 
 
-        if depth == self.max_depth:
+        # Check if depth is reached or board is full (game over) and return score
+        if (depth == self.max_depth) or (num_moves >= self.dimensions - 2):
             return sign * self.evaluate_board_state(board)
 
-        #detect a draw, once 40 tokens are on the board in a 6*7 game and no one has won already,
-        #no one can possibly win now.
-        #This is necessary because a good AI will need to try go for a draw if it is impossible to win.
-        #0 represents an equal scored move for both players.
-        if num_moves >= self.dimensions - 2:
-            return 0
-
         valid_moves = valid_moves_wrapper(board)
-        vals = []
         if sign == 1:
-            value = LARGE_NUM
+            value = 100
             for move in valid_moves:
                 next_node = next_state_fast(board, get_current_player(num_moves+1), move)
                 # recursively go through the children of this node.
                 result = self.minimax_alpha_beta(next_node, alpha, beta, num_moves+1, -sign, depth + 1)
-                vals.append(result)
-
                 if result < value:
                     value = result
                 if value < beta:
@@ -346,12 +340,11 @@ class StudentAgent(RandomAgent):
                 if alpha >= beta:
                     break
             return value
-        value = -LARGE_NUM
+        value = -100
         for move in valid_moves:
             next_node = next_state_fast(board, get_current_player(num_moves+1), move)
             # recursively go through the children of this node.
             result = self.minimax_alpha_beta(next_node, alpha, beta, num_moves+1, -sign, depth + 1)
-            vals.append(result)
             if result > value:
                 value = result
             if value > alpha:
