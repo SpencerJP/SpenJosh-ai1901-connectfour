@@ -168,6 +168,7 @@ class StudentAgent(RandomAgent):
         self.enemy_id = -1
         self.debug = False
         self.middle_col = -1
+        self.transpos_table = {}
         self.max_score = -1
         self.min_score = -1
 
@@ -179,6 +180,8 @@ class StudentAgent(RandomAgent):
         #     self.max_depth = self.max_depth + int(7 - possible_branches)
         elif num_moves > 2:
             self.max_depth = 3
+        elif num_moves > 12:
+            self.max_depth = 4
         elif num_moves > 20:
             self.max_depth = 6
         elif num_moves > 27:
@@ -195,8 +198,8 @@ class StudentAgent(RandomAgent):
             A tuple of two integers, (row, col)
         """
         start = time.time()
+        self.transpos_table = {}
 
-        board.next_state_fast = next_state_fast
         #check how many moves have occurred so far on this board.
         current_move_number = count_moves(board)
 
@@ -284,7 +287,6 @@ class StudentAgent(RandomAgent):
             next_node = next_state_fast(board, self.id, best_move)
             print("Placed a piece in (%d, %d)" % (best_move[0], best_move[1]))
             debug_print_board(next_node)
-
         return best_move
 
 
@@ -304,11 +306,16 @@ class StudentAgent(RandomAgent):
         1 for our move, -1 for enemy move.
 
         depth is how deep our search has gone so far, beginning at 0 from get_move()."""
-
+        boardhash = hash(str(board.board))
+        #check if this node has already been evaluated this turn
+        if boardhash in self.transpos_table:
+            return self.transpos_table[boardhash]
         # no valid moves that won't cause a loss, aka dead end
         sum_of_moves = count_non_losing_moves(board, num_moves)
         if sum_of_moves == 0:
-            return sign * -int((self.dimensions - num_moves - 2) / 2 + WIN_HEURISTIC_OFFSET)
+            returnvalue = sign * -int((self.dimensions - num_moves - 2) / 2 + WIN_HEURISTIC_OFFSET)
+            self.transpos_table[boardhash] = returnvalue
+            return returnvalue
 
         """check if this board has a winner and return if it does
         this is the heuristic of our algorithm.
@@ -318,12 +325,16 @@ class StudentAgent(RandomAgent):
         and a close one."""
         winner_num = board.winner()
         if winner_num != 0:
-            return sign * int((self.dimensions - num_moves - 2) / 2 + WIN_HEURISTIC_OFFSET)
+            returnvalue = sign * int((self.dimensions - num_moves - 2) / 2 + WIN_HEURISTIC_OFFSET)
+            self.transpos_table[boardhash] = returnvalue
+            return returnvalue
 
 
         # Check if depth is reached or board is full (game over) and return score
         if (depth == self.max_depth) or (num_moves >= self.dimensions - 2):
-            return sign * self.evaluate_board_state(board)
+            returnvalue = sign * self.evaluate_board_state(board)
+            self.transpos_table[boardhash] = returnvalue
+            return returnvalue
 
         valid_moves = valid_moves_wrapper(board)
         if sign == 1:
@@ -339,6 +350,7 @@ class StudentAgent(RandomAgent):
 
                 if alpha >= beta:
                     break
+            self.transpos_table[boardhash] = value
             return value
         value = -100
         for move in valid_moves:
@@ -352,7 +364,9 @@ class StudentAgent(RandomAgent):
 
             if alpha >= beta:
                 break
+        self.transpos_table[boardhash] = value
         return value
+
 
     def evaluate_board_state(self, board):
         """
