@@ -333,35 +333,32 @@ class StudentAgent(RandomAgent):
             return returnvalue
 
         valid_moves = valid_moves_wrapper(board)
+        # This agent made last move, Now it is minimizing players turn
         if sign == 1:
-            value = 100
+            mins_value = LARGE_NUM
             for move in valid_moves:
                 next_node = next_state_fast(board, get_current_player(num_moves+1), move)
                 # recursively go through the children of this node.
                 result = self.minimax_alpha_beta(next_node, alpha, beta, num_moves+1, -sign, depth + 1)
-                if result < value:
-                    value = result
-                if value < beta:
-                    beta = value
-
-                if alpha >= beta:
+                mins_value = min(mins_value, result)
+                beta = min(beta, result)
+                if beta <= alpha:
                     break
-            self.transpos_table[boardhash] = value
-            return value
-        value = -100
+            self.transpos_table[boardhash] = mins_value
+            return mins_value
+
+        # Maximizing players turn
+        maxs_value = -LARGE_NUM
         for move in valid_moves:
             next_node = next_state_fast(board, get_current_player(num_moves+1), move)
             # recursively go through the children of this node.
             result = self.minimax_alpha_beta(next_node, alpha, beta, num_moves+1, -sign, depth + 1)
-            if result > value:
-                value = result
-            if value > alpha:
-                alpha = value
-
-            if alpha >= beta:
+            maxs_value = max(maxs_value, result)
+            alpha = max(alpha, result)
+            if beta <= alpha:
                 break
-        self.transpos_table[boardhash] = value
-        return value
+        self.transpos_table[boardhash] = maxs_value
+        return maxs_value
 
 
     def evaluate_board_state(self, board):
