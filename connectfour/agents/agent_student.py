@@ -10,6 +10,7 @@ PLAYER_TWO_ID = 2
 # Winning moves heuristic returns number of moves till a win
 # This offset is equal to the largest score produced by evaluate_board() to ensure a higher score.
 WIN_HEURISTIC_OFFSET = 100
+LARGE_NUM = 1000
 
 def get_current_player(num_moves):
     """Counts the moves and returns player 1 if move count is even, returns player 2 if odd"""
@@ -178,12 +179,12 @@ class StudentAgent(RandomAgent):
             self.max_depth = 1
         # elif possible_branches < 7: #removed for the <20s time limit
         #     self.max_depth = self.max_depth + int(7 - possible_branches)
-        elif num_moves > 2:
-            self.max_depth = 3
-        elif num_moves > 12:
+        elif num_moves > 6:
             self.max_depth = 4
+        elif num_moves > 12:
+            self.max_depth = 5
         elif num_moves > 20:
-            self.max_depth = 6
+            self.max_depth = 10
         elif num_moves > 27:
             self.max_depth = self.dimensions # max
         else:
@@ -202,7 +203,6 @@ class StudentAgent(RandomAgent):
 
         #check how many moves have occurred so far on this board.
         current_move_number = count_moves(board)
-
 
         #check board size
         if self.dimensions == -1:
@@ -258,13 +258,9 @@ class StudentAgent(RandomAgent):
         moves = []
 
         for move in valid_moves:
-            minimum = int(-(self.dimensions - 1 - current_move_number) / 2)
-
-            maximum = int((self.dimensions + 1 - current_move_number) / 2)
             next_node = next_state_fast(board, self.id, move)
             moves.append(move)
-
-            value = int(self.minimax_alpha_beta(next_node, minimum, maximum, current_move_number))
+            value = int(self.minimax_alpha_beta(next_node, -LARGE_NUM, LARGE_NUM, current_move_number))
             if self.debug:
                 print("column number: %d, calculated value: %d" % (move[1], value))
             vals.append(value)
@@ -337,35 +333,32 @@ class StudentAgent(RandomAgent):
             return returnvalue
 
         valid_moves = valid_moves_wrapper(board)
+        # This agent made last move, Now it is minimizing players turn
         if sign == 1:
-            value = 100
+            mins_value = LARGE_NUM
             for move in valid_moves:
                 next_node = next_state_fast(board, get_current_player(num_moves+1), move)
                 # recursively go through the children of this node.
                 result = self.minimax_alpha_beta(next_node, alpha, beta, num_moves+1, -sign, depth + 1)
-                if result < value:
-                    value = result
-                if value < beta:
-                    beta = value
-
-                if alpha >= beta:
+                mins_value = min(mins_value, result)
+                beta = min(beta, result)
+                if beta <= alpha:
                     break
-            self.transpos_table[boardhash] = value
-            return value
-        value = -100
+            self.transpos_table[boardhash] = mins_value
+            return mins_value
+
+        # Maximizing players turn
+        maxs_value = -LARGE_NUM
         for move in valid_moves:
             next_node = next_state_fast(board, get_current_player(num_moves+1), move)
             # recursively go through the children of this node.
             result = self.minimax_alpha_beta(next_node, alpha, beta, num_moves+1, -sign, depth + 1)
-            if result > value:
-                value = result
-            if value > alpha:
-                alpha = value
-
-            if alpha >= beta:
+            maxs_value = max(maxs_value, result)
+            alpha = max(alpha, result)
+            if beta <= alpha:
                 break
-        self.transpos_table[boardhash] = value
-        return value
+        self.transpos_table[boardhash] = maxs_value
+        return maxs_value
 
 
     def evaluate_board_state(self, board):
