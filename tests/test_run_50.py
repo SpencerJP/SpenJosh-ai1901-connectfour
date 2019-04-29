@@ -19,7 +19,7 @@ def debug_print_board(boardclass):
 
 def main():
     test_randomagent(2)
-    #test_montecarlo(2)
+    test_montecarlo(2)
     #test_joshagent(2)
     # test_combinedagent(2)
     # test_combinedagent2(2)
