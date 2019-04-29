@@ -293,7 +293,6 @@ class StudentAgent(RandomAgent):
 
         board is the game state to evaluate.
         alpha is the alpha value for the current node
-
         beta is the beta value for the current node
 
         num_moves is the amount of moves that have been made so far.
@@ -309,7 +308,7 @@ class StudentAgent(RandomAgent):
         # no valid moves that won't cause a loss, aka dead end
         sum_of_moves = count_non_losing_moves(board, num_moves)
         if sum_of_moves == 0:
-            return sign * -int((self.dimensions + LARGE_NUM - num_moves - 2) / 2)
+            return sign * -int((self.dimensions - num_moves - 2) / 2 + WIN_HEURISTIC_OFFSET)
 
         """check if this board has a winner and return if it does
         this is the heuristic of our algorithm.
@@ -319,7 +318,7 @@ class StudentAgent(RandomAgent):
         and a close one."""
         winner_num = board.winner()
         if winner_num != 0:
-            return sign * int((self.dimensions + LARGE_NUM - num_moves) / 2)
+            return sign * int((self.dimensions - num_moves - 2) / 2 + WIN_HEURISTIC_OFFSET)
 
 
         if depth == self.max_depth:
