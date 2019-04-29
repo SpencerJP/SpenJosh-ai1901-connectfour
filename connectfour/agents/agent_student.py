@@ -204,7 +204,6 @@ class StudentAgent(RandomAgent):
         #check how many moves have occurred so far on this board.
         current_move_number = count_moves(board)
 
-
         #check board size
         if self.dimensions == -1:
             self.dimensions = board.width * board.height
@@ -259,13 +258,9 @@ class StudentAgent(RandomAgent):
         moves = []
 
         for move in valid_moves:
-            minimum = int(-(self.dimensions - 1 - current_move_number) / 2)
-
-            maximum = int((self.dimensions + 1 - current_move_number) / 2)
             next_node = next_state_fast(board, self.id, move)
             moves.append(move)
-
-            value = int(self.minimax_alpha_beta(next_node, minimum, maximum, current_move_number))
+            value = int(self.minimax_alpha_beta(next_node, -LARGE_NUM, LARGE_NUM, current_move_number))
             if self.debug:
                 print("column number: %d, calculated value: %d" % (move[1], value))
             vals.append(value)
