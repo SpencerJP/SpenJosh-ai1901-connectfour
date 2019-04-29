@@ -7,7 +7,9 @@ from connectfour.agents.computer_player import RandomAgent
 
 PLAYER_ONE_ID = 1
 PLAYER_TWO_ID = 2
-LARGE_NUM = 100
+# Winning moves heuristic returns number of moves till a win
+# This offset is equal to the largest score produced by evaluate_board() to ensure a higher score.
+WIN_HEURISTIC_OFFSET = 100
 
 def get_current_player(num_moves):
     """Counts the moves and returns player 1 if move count is even, returns player 2 if odd"""
