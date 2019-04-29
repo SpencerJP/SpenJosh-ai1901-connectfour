@@ -179,12 +179,12 @@ class StudentAgent(RandomAgent):
             self.max_depth = 1
         # elif possible_branches < 7: #removed for the <20s time limit
         #     self.max_depth = self.max_depth + int(7 - possible_branches)
-        elif num_moves > 2:
-            self.max_depth = 3
-        elif num_moves > 12:
+        elif num_moves > 6:
             self.max_depth = 4
+        elif num_moves > 12:
+            self.max_depth = 5
         elif num_moves > 20:
-            self.max_depth = 6
+            self.max_depth = 10
         elif num_moves > 27:
             self.max_depth = self.dimensions # max
         else:
