@@ -173,14 +173,16 @@ class StudentAgent(RandomAgent):
         """variable depth to make the algorithm less slow, but still produce good results"""
         if num_moves == 1:
             self.max_depth = 1
-            return
-        self.max_depth = 2
-        # if possible_branches < 7: #removed for the >0s time limit
+        # elif possible_branches < 7: #removed for the <20s time limit
         #     self.max_depth = self.max_depth + int(7 - possible_branches)
-        if num_moves > 20:
+        elif num_moves > 2:
+            self.max_depth = 3
+        elif num_moves > 20:
             self.max_depth = 6
-        if num_moves > 27:
+        elif num_moves > 27:
             self.max_depth = self.dimensions # max
+        else:
+            self.max_depth = 2
 
     def get_move(self, board):
         """
