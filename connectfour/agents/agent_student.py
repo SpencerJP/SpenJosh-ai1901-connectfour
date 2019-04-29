@@ -183,8 +183,12 @@ class StudentAgent(RandomAgent):
         elif num_moves > 12:
             self.max_depth = 4
         elif num_moves > 20:
+            #force the board evaluations out
+            self.transpos_table = {}
             self.max_depth = 6
         elif num_moves > 27:
+            #force the board evaluations out
+            self.transpos_table = {}
             self.max_depth = self.dimensions # max
         else:
             self.max_depth = 2
