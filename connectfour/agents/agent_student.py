@@ -1,4 +1,4 @@
-"""Spencer and Josh's agent for playing Connect 4."""
+"""Spencer Porteous (s3539519) and Joshua Thorpe's (s3543345) agent for playing Connect 4."""
 import time
 import numpy as np
 from connectfour.board import Board
