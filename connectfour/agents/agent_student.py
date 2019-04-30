@@ -1,4 +1,4 @@
-"""Spencer and Josh's agent for playing Connect 4."""
+"""Spencer Porteous (s3539519) and Joshua Thorpe's (s3543345) agent for playing Connect 4."""
 import time
 import numpy as np
 from connectfour.board import Board
@@ -12,11 +12,13 @@ PLAYER_TWO_ID = 2
 WIN_HEURISTIC_OFFSET = 100
 LARGE_NUM = 1000
 
+
 def get_current_player(num_moves):
     """Counts the moves and returns player 1 if move count is even, returns player 2 if odd"""
     if(num_moves % 2 == 0 or num_moves == 0):
         return PLAYER_ONE_ID
     return PLAYER_TWO_ID
+
 
 def debug_print_board(board, score=None):
     """Prints out the board argument into the terminal, followed by a newline."""
@@ -60,7 +62,6 @@ def valid_moves_wrapper(board):
     return board.valid_moves()
 
 
-
 # pylint: disable=E1101
 def valid_non_losing_moves(board, num_moves):
     """
@@ -96,7 +97,7 @@ def valid_non_losing_moves(board, num_moves):
         if not failure:
             yield move
 
-# pylint: disable=E1101
+
 def count_non_losing_moves(board, num_moves):
     """
     I made this method because I feel that that the
@@ -139,12 +140,14 @@ def count_non_losing_moves(board, num_moves):
 
 class Empty(object):
     """hack to avoid _build_winning_zones_map in the board class code"""
+    #pylint: disable=R0205
 
-#pylint: disable=W0201
+
 def next_state_fast(board, player_id, move):
     """My monkey patching method to avoid using deepcopy and _build_winning_zones_map
     this hack skips the constructor in the board class,
     hence the pylint suppressor"""
+    # pylint: disable=W0201
     next_board = Empty()
     next_board.__class__ = Board
     next_board.width = 7
@@ -158,9 +161,10 @@ def next_state_fast(board, player_id, move):
     next_board.next_state_fast = next_state_fast
     return next_board
 
- # pylint: disable=too-many-instance-attributes
+
 class StudentAgent(RandomAgent):
     """Our agent class."""
+    # pylint: disable=too-many-instance-attributes
     def __init__(self, name):
         super().__init__(name)
         self.max_depth = -1
@@ -173,7 +177,8 @@ class StudentAgent(RandomAgent):
         self.max_score = -1
         self.min_score = -1
 
-    def set_variable_depth(self, num_moves, possible_branches):
+
+    def set_variable_depth(self, num_moves):
         """variable depth to make the algorithm less slow, but still produce good results"""
         if num_moves == 1:
             self.max_depth = 1
@@ -191,6 +196,7 @@ class StudentAgent(RandomAgent):
             self.max_depth = self.dimensions # max
         else:
             self.max_depth = 2
+
 
     def get_move(self, board):
         """
@@ -219,7 +225,7 @@ class StudentAgent(RandomAgent):
 
         non_losing_moves_count = count_non_losing_moves(board, current_move_number)
 
-        self.set_variable_depth(current_move_number, non_losing_moves_count)
+        self.set_variable_depth(current_move_number)
 
         #check which player this agent is going to be and set it (as in id, will be either 1 or 2)
         if self.id == -1:
@@ -262,7 +268,8 @@ class StudentAgent(RandomAgent):
         for move in valid_moves:
             next_node = next_state_fast(board, self.id, move)
             moves.append(move)
-            value = int(self.minimax_alpha_beta(next_node, -LARGE_NUM, LARGE_NUM, current_move_number))
+            value = int(self.minimax_alpha_beta(next_node, -LARGE_NUM, LARGE_NUM,
+                                                current_move_number))
             if self.debug:
                 print("column number: %d, calculated value: %d" % (move[1], value))
             vals.append(value)
@@ -315,12 +322,12 @@ class StudentAgent(RandomAgent):
             self.transpos_table[boardhash] = returnvalue
             return returnvalue
 
-        """check if this board has a winner and return if it does
-        this is the heuristic of our algorithm.
-        The number it returns is scored on how many moves
-        it would take to guarantee a victory for a perfect player.
-        Using this you can score the difference between a distant victory
-        and a close one."""
+        # check if this board has a winner and return if it does
+        # this is the heuristic of our algorithm.
+        # The number it returns is scored on how many moves
+        # it would take to guarantee a victory for a perfect player.
+        # Using this you can score the difference between a distant victory
+        # and a close one.
         winner_num = board.winner()
         if winner_num != 0:
             returnvalue = sign * int((self.dimensions - num_moves - 2) / 2 + WIN_HEURISTIC_OFFSET)
@@ -330,7 +337,7 @@ class StudentAgent(RandomAgent):
 
         # Check if depth is reached or board is full (game over) and return score
         if (depth == self.max_depth) or (num_moves >= self.dimensions - 2):
-            returnvalue = sign * self.evaluate_board_state(board)
+            returnvalue = sign * evaluate_board_state(board)
             self.transpos_table[boardhash] = returnvalue
             return returnvalue
 
@@ -341,7 +348,8 @@ class StudentAgent(RandomAgent):
             for move in valid_moves:
                 next_node = next_state_fast(board, get_current_player(num_moves+1), move)
                 # recursively go through the children of this node.
-                result = self.minimax_alpha_beta(next_node, alpha, beta, num_moves+1, -sign, depth + 1)
+                result = self.minimax_alpha_beta(next_node, alpha,
+						 beta, num_moves+1, -sign, depth+1)
                 mins_value = min(mins_value, result)
                 beta = min(beta, result)
                 if beta <= alpha:
@@ -363,61 +371,60 @@ class StudentAgent(RandomAgent):
         return maxs_value
 
 
-    def evaluate_board_state(self, board):
-        """
-        Your evaluation function should look at the current state and return a score for it.
-        As an example, the random agent provided works as follows:
-            If the opponent has won this game, return -1.
-            If we have won the game, return 1.
-            If neither of the players has won, return a random number.
-        """
-        """
-        These are the variables and functions for board objects
+def evaluate_board_state(board):
+    """
+    Your evaluation function should look at the current state and return a score for it.
+    As an example, the random agent provided works as follows:
+	If the opponent has won this game, return -1.
+	If we have won the game, return 1.
+	If neither of the players has won, return a random number.
 
-        Board Variables:
-            board.width
-            board.height
-            board.last_move
-            board.num_to_connect
-            board.winning_zones
-            board.score_array
-            board.current_player_score
+    These are the variables and functions for board objects
 
-        Board Functions:
-            get_cell_value(row, col)
-            try_move(col)
-            valid_move(row, col)
-            valid_moves()
-            terminal(self)
-            legal_moves()
-            next_state(turn)
-            winner()
-        """
+    Board Variables:
+	board.width
+	board.height
+	board.last_move
+	board.num_to_connect
+	board.winning_zones
+	board.score_array
+	board.current_player_score
 
-        # Get set of threats for each player
-        npboard = np.array(board.board)
-        p1_threats = set()
-        p2_threats = set()
-        p1_temp, p2_temp = vertical_threat(npboard)
-        p1_threats.update(p1_temp)
-        p2_threats.update(p2_temp)
-        p1_temp, p2_temp = horizontal_threat(npboard)
-        p1_threats.update(p1_temp)
-        p2_threats.update(p2_temp)
-        p1_temp, p2_temp = diagonal_threat(npboard)
-        p1_threats.update(p1_temp)
-        p2_threats.update(p2_temp)
+    Board Functions:
+	get_cell_value(row, col)
+	try_move(col)
+	valid_move(row, col)
+	valid_moves()
+	terminal(self)
+	legal_moves()
+	next_state(turn)
+	winner()
+    """
 
-        # Remove bad threats
-        p1_threats, p2_threats = remove_bad_threats(p1_threats, p2_threats)
+    # Get set of threats for each player
+    npboard = np.array(board.board)
+    p1_threats = set()
+    p2_threats = set()
+    p1_temp, p2_temp = vertical_threat(npboard)
+    p1_threats.update(p1_temp)
+    p2_threats.update(p2_temp)
+    p1_temp, p2_temp = horizontal_threat(npboard)
+    p1_threats.update(p1_temp)
+    p2_threats.update(p2_temp)
+    p1_temp, p2_temp = diagonal_threat(npboard)
+    p1_threats.update(p1_temp)
+    p2_threats.update(p2_temp)
 
-        return (get_threat_score(p1_threats, p2_threats) +
-            central_heuristic(board)/10)
+    # Remove bad threats
+    p1_threats, p2_threats = remove_bad_threats(p1_threats, p2_threats)
+
+    return get_threat_score(p1_threats, p2_threats) + central_heuristic(board)/10
 
 
 def vertical_threat(board_array):
     """Function to find vertical threats for each player
     """
+    #pylint: disable = invalid-name
     h, w = board_array.shape
     p1_threats = set()
     p2_threats = set()
@@ -436,9 +443,11 @@ def vertical_threat(board_array):
 def horizontal_threat(board_array):
     """Function to find horizontal threats for each player
     """
+    #pylint: disable = invalid-name
     h, w = board_array.shape
     p1_threats = set()
     p2_threats = set()
+    #pylint: disable = bad-whitespace
     masks = [np.array([0,1,1,1]),
              np.array([1,0,1,1]),
              np.array([1,1,0,1]),
@@ -459,10 +468,12 @@ def horizontal_threat(board_array):
 def diagonal_threat(board_array):
     """Function to find diagonal_threats for each player
     """
+    #pylint: disable = invalid-name
     h, w = board_array.shape
     p1_threats = set()
     p2_threats = set()
 
+    #pylint: disable = bad-whitespace
     masks = [np.array([0,1,1,1]),
              np.array([1,0,1,1]),
              np.array([1,1,0,1]),
@@ -507,6 +518,7 @@ def central_heuristic(board):
 def remove_bad_threats(p1_threats, p2_threats):
     """Function to remove bad threats from the threat sets
     """
+    #pylint: disable = invalid-name
     for r, c in p1_threats:
         # Remove any oposition threat 1 position above as it is redundant
         p2_threats.discard((r-1, c))
@@ -518,7 +530,7 @@ def remove_bad_threats(p1_threats, p2_threats):
     return p1_threats, p2_threats
 
 
-def get_threat_score(p1, p2):
+def get_threat_score(p1_threats, p2_threats):
     """ Function to evaluate the score for the boards threats
     Threats that exist at lower levels of the board should score higher
     Threats by player 1 should score higher if made on odd rows,
@@ -526,20 +538,21 @@ def get_threat_score(p1, p2):
     """
     score = 0
 
-    for r, c in p1:
-        if (6-r)%2:
+    for row, _ in p1_threats:
+        if (6-row)%2:
             # Odd threat
-            score += 1.3*r
+            score += 1.3*row
         else:
             # Even threat
-            score += 1*r
+            score += 1*row
 
-    for r, c in p2:
-        if (6-r)%2:
+    for row, _ in p2_threats:
+        if (6-row)%2:
             # Odd threat
-            score -= 1*r
+            score -= 1*row
         else:
             # Even threat
-            score -= 1.3*r
+            score -= 1.3*row
 
     return score
+
