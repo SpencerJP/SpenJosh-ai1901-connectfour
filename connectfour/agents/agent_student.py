@@ -12,11 +12,13 @@ PLAYER_TWO_ID = 2
 WIN_HEURISTIC_OFFSET = 100
 LARGE_NUM = 1000
 
+
 def get_current_player(num_moves):
     """Counts the moves and returns player 1 if move count is even, returns player 2 if odd"""
     if(num_moves % 2 == 0 or num_moves == 0):
         return PLAYER_ONE_ID
     return PLAYER_TWO_ID
+
 
 def debug_print_board(board, score=None):
     """Prints out the board argument into the terminal, followed by a newline."""
@@ -60,7 +62,6 @@ def valid_moves_wrapper(board):
     return board.valid_moves()
 
 
-
 # pylint: disable=E1101
 def valid_non_losing_moves(board, num_moves):
     """
@@ -96,7 +97,7 @@ def valid_non_losing_moves(board, num_moves):
         if not failure:
             yield move
 
-# pylint: disable=E1101
+
 def count_non_losing_moves(board, num_moves):
     """
     I made this method because I feel that that the
@@ -141,11 +142,12 @@ class Empty(object):
     """hack to avoid _build_winning_zones_map in the board class code"""
     #pylint: disable=R0205
 
-#pylint: disable=W0201
+
 def next_state_fast(board, player_id, move):
     """My monkey patching method to avoid using deepcopy and _build_winning_zones_map
     this hack skips the constructor in the board class,
     hence the pylint suppressor"""
+    # pylint: disable=W0201
     next_board = Empty()
     next_board.__class__ = Board
     next_board.width = 7
@@ -159,9 +161,10 @@ def next_state_fast(board, player_id, move):
     next_board.next_state_fast = next_state_fast
     return next_board
 
- # pylint: disable=too-many-instance-attributes
+
 class StudentAgent(RandomAgent):
     """Our agent class."""
+    # pylint: disable=too-many-instance-attributes
     def __init__(self, name):
         super().__init__(name)
         self.max_depth = -1
@@ -173,6 +176,7 @@ class StudentAgent(RandomAgent):
         self.transpos_table = {}
         self.max_score = -1
         self.min_score = -1
+
 
     def set_variable_depth(self, num_moves):
         """variable depth to make the algorithm less slow, but still produce good results"""
@@ -192,6 +196,7 @@ class StudentAgent(RandomAgent):
             self.max_depth = self.dimensions # max
         else:
             self.max_depth = 2
+
 
     def get_move(self, board):
         """
@@ -550,3 +555,4 @@ def get_threat_score(p1_threats, p2_threats):
             score -= 1.3*row
 
     return score
+
